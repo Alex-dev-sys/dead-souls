@@ -49,35 +49,36 @@
 }
 
 :root {
-  --background: #0a0a0f;
-  --foreground: #e0e0e0;
-  --card: #14141c;
+  --background: #090d14;
+  --foreground: #e6ecf7;
+  --card: #121a25;
   --card-foreground: #e0e0e0;
-  --popover: #14141c;
+  --popover: #121a25;
   --popover-foreground: #e0e0e0;
-  --primary: #bb86fc;
-  --primary-foreground: #000000;
-  --secondary: #3700b3;
+  --primary: #e2a72a;
+  --primary-foreground: #101216;
+  --secondary: #183249;
   --secondary-foreground: #ffffff;
-  --muted: #1e1e28;
-  --muted-foreground: #a1a1aa;
-  --accent: #1e1e28;
+  --muted: #16212f;
+  --muted-foreground: #9eb0c6;
+  --accent: #16212f;
   --accent-foreground: #fafafa;
-  --destructive: #cf6679;
+  --destructive: #d35b71;
   --destructive-foreground: #ffffff;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #bb86fc;
-  --radius: 0.5rem;
-  --success: #03dac6;
-  --warning: #ffd700;
+  --border: #243447;
+  --input: #243447;
+  --ring: #e2a72a;
+  --radius: 0.85rem;
+  --success: #22c488;
+  --warning: #e2a72a;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: "Trebuchet MS", "Segoe UI Variable", "Segoe UI", sans-serif;
   overflow: hidden;
+  line-height: 1.45;
 }
 
 .game-shell {
@@ -114,9 +115,9 @@ body::before {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 20% 50%, rgba(187, 134, 252, 0.06) 0, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(3, 218, 198, 0.04) 0, transparent 50%),
-    radial-gradient(circle at 50% 80%, rgba(207, 102, 121, 0.04) 0, transparent 50%);
+    radial-gradient(circle at 12% 18%, rgba(35, 89, 138, 0.2) 0, transparent 40%),
+    radial-gradient(circle at 88% 15%, rgba(226, 167, 42, 0.15) 0, transparent 35%),
+    radial-gradient(circle at 50% 92%, rgba(19, 61, 95, 0.25) 0, transparent 42%);
   animation: bg-drift 20s ease-in-out infinite alternate;
 }
 
@@ -134,7 +135,97 @@ body::before {
 
 /* Selection color */
 ::selection {
-  background: rgba(187, 134, 252, 0.3);
+  background: rgba(226, 167, 42, 0.35);
+}
+
+.ui-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.65rem;
+  gap: 0.6rem;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(18, 26, 37, 0.88), rgba(13, 20, 30, 0.88));
+  border: 1px solid rgba(73, 97, 122, 0.38);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(4, 10, 20, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.section-title {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  color: #93a6bd;
+}
+
+.btn {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 160ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(110deg, #e2a72a 0%, #f4c456 100%);
+  color: #111319;
+  border: 1px solid rgba(255, 209, 97, 0.55);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+.btn-secondary {
+  background: linear-gradient(110deg, rgba(38, 88, 136, 0.95), rgba(26, 68, 110, 0.95));
+  color: #e6edf8;
+  border: 1px solid rgba(79, 131, 183, 0.45);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(122, 167, 209, 0.75);
+}
+
+.btn-ghost {
+  background: rgba(10, 15, 24, 0.62);
+  color: #d4deed;
+  border: 1px solid rgba(71, 95, 119, 0.42);
+}
+
+.btn-ghost:hover {
+  background: rgba(14, 22, 35, 0.86);
+}
+
+.ui-input {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(71, 95, 119, 0.5);
+  background: rgba(8, 14, 22, 0.75);
+  color: #e7edf7;
+  padding: 0 0.85rem;
+  outline: none;
+}
+
+.ui-input:focus {
+  border-color: rgba(226, 167, 42, 0.8);
+  box-shadow: 0 0 0 1px rgba(226, 167, 42, 0.48);
+}
+
+.stat-pill {
+  height: 38px;
+  border-radius: 11px;
+  padding: 0 0.65rem;
+  border: 1px solid rgba(73, 97, 122, 0.38);
+  background: rgba(11, 17, 27, 0.62);
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
