@@ -76,8 +76,17 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   overflow: hidden;
+}
+
+.game-shell {
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-panel {
+  min-height: 170px;
 }
 
 /* Custom scrollbar */
@@ -126,4 +135,11 @@ body::before {
 /* Selection color */
 ::selection {
   background: rgba(187, 134, 252, 0.3);
+}
+
+@media (max-width: 768px) {
+  body {
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
+  }
 }

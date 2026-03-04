@@ -36,6 +36,7 @@ const ENCOUNTERS_INFO: Record<string, EncounterInfo> = {
 export default function GameScreen() {
     const { currentRoom, playerId, gameLogs, turnDeadline, sellSoul, buyItem, activateAbility, resolveEncounter } = useSocket();
     const [tab, setTab] = useState<'map' | 'market'>('map');
+    const [mobilePanel, setMobilePanel] = useState<"players" | "logs" | "inventory">("players");
     const [nowTs, setNowTs] = useState(() => Date.now());
 
     useEffect(() => {
@@ -50,6 +51,7 @@ export default function GameScreen() {
     const me = currentRoom.players.find(p => p.socketId === playerId)!;
     const activeP = currentRoom.players[currentRoom.activePlayerIndex];
     const isMyTurn = activeP?.socketId === playerId;
+    const countdownSec = Math.max(0, Math.ceil((turnDeadline - nowTs) / 1000));
 
     // Encounter Modal
     const myEncounter = currentRoom.activeEncounter?.playerId === playerId ? currentRoom.activeEncounter : null;
@@ -85,7 +87,7 @@ export default function GameScreen() {
     }
 
     return (
-        <div className="flex flex-col h-screen max-w-6xl mx-auto p-2 gap-2 overflow-hidden relative">
+        <div className="flex flex-col h-screen max-w-6xl mx-auto p-2 gap-2 overflow-hidden relative game-shell">
             {/* Encounter Overlay */}
             <AnimatePresence>
                 {myEncounter && encounterData && (
@@ -109,7 +111,7 @@ export default function GameScreen() {
 
             {/* Header HUD */}
             <header className="grid grid-cols-3 md:grid-cols-6 gap-2 bg-card/60 backdrop-blur border border-white/5 p-3 rounded-xl">
-                <div className="flex items-center gap-2 text-cyan-400 font-mono"><Clock className="w-4 h-4" /> {Math.max(0, Math.ceil((turnDeadline - nowTs) / 1000))}s</div>
+                <div className="flex items-center gap-2 text-cyan-400 font-mono"><Clock className="w-4 h-4" /> {countdownSec}s</div>
                 <div className="flex items-center gap-2 text-emerald-400 font-bold"><Coins className="w-4 h-4" /> {me.money}</div>
                 <div className={cn("flex items-center gap-2 font-bold", me.wantedLevel > 50 ? "text-rose-500 animate-pulse" : "text-gray-400")}>
                     <Eye className="w-4 h-4" /> {me.wantedLevel}%
@@ -180,7 +182,7 @@ export default function GameScreen() {
                 </div>
 
                 {/* Right: Info/Logs */}
-                <div className="md:col-span-4 flex flex-col gap-2 min-h-0">
+                <div className="hidden md:flex md:col-span-4 flex-col gap-2 min-h-0">
                     {/* Players */}
                     <div className="bg-card/50 border border-white/5 rounded-xl p-3 max-h-[30%] overflow-y-auto">
                         <div className="space-y-1">
@@ -225,6 +227,89 @@ export default function GameScreen() {
                     </div>
                 </div>
             </div>
+
+            <section className="md:hidden bg-card/50 border border-white/10 rounded-xl p-2 space-y-2 mobile-panel">
+                <div className="grid grid-cols-3 gap-2">
+                    <button
+                        onClick={() => setMobilePanel("players")}
+                        className={cn("py-2 rounded-lg text-xs font-semibold", mobilePanel === "players" ? "bg-primary text-black" : "bg-black/30 text-gray-300")}
+                    >
+                        Игроки
+                    </button>
+                    <button
+                        onClick={() => setMobilePanel("logs")}
+                        className={cn("py-2 rounded-lg text-xs font-semibold", mobilePanel === "logs" ? "bg-primary text-black" : "bg-black/30 text-gray-300")}
+                    >
+                        Логи
+                    </button>
+                    <button
+                        onClick={() => setMobilePanel("inventory")}
+                        className={cn("py-2 rounded-lg text-xs font-semibold", mobilePanel === "inventory" ? "bg-primary text-black" : "bg-black/30 text-gray-300")}
+                    >
+                        Инвентарь
+                    </button>
+                </div>
+
+                {mobilePanel === "players" && (
+                    <div className="max-h-42 overflow-y-auto space-y-1 custom-scrollbar">
+                        {currentRoom.players.map((p) => (
+                            <div
+                                key={p.socketId}
+                                className={cn(
+                                    "flex justify-between items-center text-xs p-2 rounded",
+                                    p.socketId === currentRoom.players[currentRoom.activePlayerIndex]?.socketId ? "bg-white/10" : "bg-black/20",
+                                    p.isEliminated && "opacity-40 italic"
+                                )}
+                            >
+                                <span className={cn(p.socketId === playerId && "text-primary")}>{p.nickname}</span>
+                                <div className="flex gap-2 text-gray-400">
+                                    <span>👁{p.wantedLevel}%</span>
+                                    <span className="text-emerald-500">{p.money}$</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {mobilePanel === "logs" && (
+                    <div className="max-h-42 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
+                        {gameLogs.map((l) => (
+                            <div
+                                key={l.id}
+                                className={cn(
+                                    "p-2 rounded border-l-2",
+                                    l.type === "success"
+                                        ? "border-emerald-500 bg-emerald-900/20"
+                                        : l.type === "danger"
+                                        ? "border-rose-500 bg-rose-900/20"
+                                        : "border-gray-600 bg-white/5"
+                                )}
+                            >
+                                {l.text}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {mobilePanel === "inventory" && (
+                    <div className="max-h-42 overflow-y-auto custom-scrollbar">
+                        <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
+                        <div className="flex flex-wrap gap-1">
+                            {me.inventory.map((s, i) => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => isMyTurn && sellSoul(i)}
+                                    disabled={!isMyTurn}
+                                    className="bg-purple-900/40 border border-purple-500/20 text-purple-200 px-2 py-1 rounded text-[10px] hover:bg-purple-900/60 truncate max-w-full"
+                                >
+                                    {s.name} ({s.value}$)
+                                </button>
+                            ))}
+                            {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">Пусто</span>}
+                        </div>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }
