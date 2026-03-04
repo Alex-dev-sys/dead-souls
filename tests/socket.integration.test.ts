@@ -44,6 +44,42 @@ function connectClient(): Promise<Socket> {
   });
 }
 
+type TestPlayer = {
+  socketId: string;
+  money: number;
+  wantedLevel: number;
+  items: string[];
+  role: string | null;
+};
+
+type TestRoom = {
+  status: "lobby" | "playing" | "ended";
+  turn: number;
+  activePlayerIndex: number;
+  players: TestPlayer[];
+};
+
+function waitRoomUpdate(
+  socket: Socket,
+  predicate: (room: TestRoom) => boolean,
+  timeoutMs = 12_000
+): Promise<TestRoom> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      socket.off("room_update", handler);
+      reject(new Error("Timeout waiting room_update predicate"));
+    }, timeoutMs);
+
+    const handler = (room: TestRoom) => {
+      if (!predicate(room)) return;
+      clearTimeout(timer);
+      socket.off("room_update", handler);
+      resolve(room);
+    };
+    socket.on("room_update", handler);
+  });
+}
+
 function waitServerReady(process: ChildProcessWithoutNullStreams): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Server start timeout")), 25_000);
@@ -158,6 +194,31 @@ describe("socket multiplayer integration", () => {
         expect(playingRoom.status).toBe("playing");
         expect(playingRoom.players.length).toBeGreaterThanOrEqual(2);
         expect(playingRoom.players.every((p) => p.role !== null)).toBe(true);
+      } finally {
+        guest.disconnect();
+        host.disconnect();
+      }
+    },
+    TEST_TIMEOUT
+  );
+
+  it(
+    "rejects buying item when player has no money",
+    async () => {
+      const { host, roomId, joined: hostJoined } = await createJoinedHost();
+      const guest = await connectClient();
+      try {
+        guest.emit("join_room", roomId);
+        await onceEvent<{ playerId: string }>(guest, "joined_room");
+        host.emit("start_game", roomId);
+
+        const room = await waitRoomUpdate(host, (r) => r.status === "playing");
+        const activeSocketId = room.players[room.activePlayerIndex]?.socketId;
+        const activeSocket = activeSocketId === hostJoined.playerId ? host : guest;
+
+        activeSocket.emit("action_buy", { roomId, itemId: "dagger" });
+        const error = await onceEvent<string>(activeSocket, "error_msg");
+        expect(error.length).toBeGreaterThan(0);
       } finally {
         guest.disconnect();
         host.disconnect();

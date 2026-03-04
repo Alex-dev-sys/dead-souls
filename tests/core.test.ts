@@ -106,6 +106,17 @@ describe("computeStealRisk", () => {
     expect(risk).toBe(40);
   });
 
+  it("applies intel map reduction", () => {
+    const risk = computeStealRisk({
+      districtRisk: 50,
+      eventRiskMultiplier: 1,
+      hasCloak: false,
+      hasIntelMap: true,
+      hasShadowWalk: false,
+    });
+    expect(risk).toBe(45);
+  });
+
   it("shadow walk sets risk to zero", () => {
     const risk = computeStealRisk({
       districtRisk: 50,

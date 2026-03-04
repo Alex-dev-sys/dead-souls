@@ -36,11 +36,14 @@ export function computeStealRisk(params: {
   districtRisk: number;
   eventRiskMultiplier: number;
   hasCloak: boolean;
+  hasIntelMap?: boolean;
   hasShadowWalk: boolean;
 }): number {
   if (params.hasShadowWalk) return 0;
-  const withEvent = params.districtRisk * params.eventRiskMultiplier;
-  return params.hasCloak ? withEvent * 0.8 : withEvent;
+  let risk = params.districtRisk * params.eventRiskMultiplier;
+  if (params.hasCloak) risk *= 0.8;
+  if (params.hasIntelMap) risk *= 0.9;
+  return risk;
 }
 
 export function isStealSuccess(roll0to100: number, risk: number): boolean {

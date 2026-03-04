@@ -90,6 +90,7 @@ interface SocketContextType {
   sellSoul: (idx: number) => void;
   buyItem: (itemId: string) => void;
   activateAbility: () => void;
+  waitTurn: () => void;
   resolveEncounter: (optId: string) => void;
 
   sendChat: (msg: string) => void;
@@ -226,6 +227,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         sellSoul: (soulIndex) => emit("action_sell", { soulIndex }),
         buyItem: (itemId) => emit("action_buy", { itemId }),
         activateAbility: () => emit("action_ability", {}),
+        waitTurn: () => emit("action_wait", {}),
         resolveEncounter: (optionId) => emit("action_rub_encounter", { optionId }),
         sendChat: (text) => emit("chat_message", { text }),
         clearError: () => setErrorMsg(null),
