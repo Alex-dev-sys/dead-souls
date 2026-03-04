@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es2019",
+        "isolatedModules": false,
+        "noEmit": true
+    },
+    "include": [
+        "server.ts",
+        "types/**/*.ts",
+        "context/**/*.tsx"
+    ] // Include types accessed by server
+}

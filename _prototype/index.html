@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Broker (Оценщик Душ)</title>
+    <style>
+        :root {
+            --bg-color: #0d0d12;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --secondary-color: #3700b3;
+            --danger-color: #cf6679;
+            --success-color: #03dac6;
+            --card-bg: #1e1e24;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-accent { color: var(--accent-color); }
+        .text-danger { color: var(--danger-color); }
+        .text-success { color: var(--success-color); }
+
+        /* Screens */
+        .screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+            position: relative;
+        }
+
+        /* HUD */
+        #hud {
+            background-color: var(--card-bg);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--secondary-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        #hud span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Game Area */
+        #game-log {
+            flex: 1;
+            width: 100%;
+            max-width: 600px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--secondary-color) var(--bg-color);
+        }
+
+        .log-entry {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary-color);
+            animation: fadeIn 0.3s ease;
+            text-align: left;
+        }
+
+        .log-entry.important { border-left-color: var(--accent-color); background: rgba(187, 134, 252, 0.1); }
+        .log-entry.danger { border-left-color: var(--danger-color); }
+        .log-entry.success { border-left-color: var(--success-color); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Action Panel */
+        #action-panel {
+            background-color: var(--card-bg);
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            border-top: 2px solid var(--secondary-color);
+            align-self: center;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        button:hover { background-color: var(--accent-color); color: var(--bg-color); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+
+        .btn-danger { background-color: #8b0000; }
+        .btn-danger:hover { background-color: var(--danger-color); }
+
+        /* Class Selection */
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .class-card {
+            background: var(--card-bg);
+            border: 1px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .class-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(187, 134, 252, 0.3); border-color: var(--accent-color); }
+        .class-card h3 { color: var(--accent-color); margin-top: 0; }
+        .class-card p { font-size: 0.85rem; color: #aaa; }
+        .class-card .bonus { color: var(--success-color); font-size: 0.8rem; }
+        .class-card .malus { color: var(--danger-color); font-size: 0.8rem; }
+
+        /* Titles */
+        h1, h2 { color: var(--accent-color); text-transform: uppercase; letter-spacing: 2px; }
+        h1 { margin-bottom: 10px; font-size: 2.5rem; text-shadow: 0 0 10px rgba(187, 134, 252, 0.5); }
+        .subtitle { color: #888; margin-bottom: 30px; }
+
+        /* District Selection */
+         .district-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen active">
+        <h1>Soul Broker</h1>
+        <p class="subtitle">Город Душ ждет своего Оценщика</p>
+        
+        <h2>Выберите класс</h2>
+        <div class="class-grid" id="class-selection">
+            <!-- Classes injected by JS -->
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div id="hud">
+            <span id="stat-turn">🌙 Ход: 1</span>
+            <span id="stat-money">💎 0</span>
+            <span id="stat-wanted" style="color: var(--success-color);">👁️ 0%</span>
+        </div>
+
+        <div id="game-log">
+            <div class="log-entry important">Добро пожаловать в Город Душ. Ваша цель — заработать 1000 монет, не попав в тюрьму.</div>
+        </div>
+
+        <div id="action-panel">
+            <!-- Actions injected by JS -->
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="game-over-screen" class="screen">
+        <h1 id="end-title">Конец Игры</h1>
+        <p id="end-reason" class="subtitle">Впечатляюще...</p>
+        <p>Итоговый счет: <span id="final-score" class="text-accent">0</span></p>
+        <button onclick="Game.restart()">Начать заново</button>
+    </div>
+
+    <script>
+        // --- CONFIG & DATA ---
+        const GAME_GOAL = 1000;
+        const MAX_WANTED = 100;
+        
+        const CLASSES = {
+            careerist: {
+                name: "Карьерист",
+                desc: "Профессионал своего дела.",
+                bonusTxt: "+20% к цене продажи",
+                malusTxt: "+10% скорости розыска",
+                bonus: { sellMultiplier: 1.2 },
+                malus: { wantedRate: 1.1 }
+            },
+            idealist: {
+                name: "Идеалист",
+                desc: "Верит, что души можно спасти.",
+                bonusTxt: "Может отпускать души за Карму",
+                malusTxt: "-20% цены продажи в Банке",
+                bonus: { canRelease: true },
+                malus: { sellMultiplier: 0.8 }
+            },
+            quiet: {
+                name: "Тихий",
+                desc: "Тень в ночи.",
+                bonusTxt: "-30% штраф при неудаче",
+                malusTxt: "-10% доход",
+                bonus: { failReduction: 0.7 },
+                malus: { incomeMultiplier: 0.9 }
+            },
+            cynic: {
+                name: "Циник",
+                desc: "Видел всё.",
+                bonusTxt: "Игнорирует плохие события (WIP)",
+                malusTxt: "Нет бонусов",
+                bonus: { eventImmunity: true },
+                malus: {}
+            }
+        };
+
+        const DISTRICTS = [
+            { id: 'slums', name: 'Трущобы', risk: 10, reward: { min: 30, max: 80 } },
+            { id: 'business', name: 'Деловой центр', risk: 40, reward: { min: 100, max: 250 } },
+            { id: 'park', name: 'Старый Парк', risk: 20, reward: { min: 50, max: 120 } },
+            { id: 'residential', name: 'Жилой массив', risk: 25, reward: { min: 60, max: 150 } }
+        ];
+
+        const EVENTS = [
+            { text: "Тихая ночь. В городе спокойно.", effect: null },
+            { text: "Облава! Полиция усилила патрули.", effect: { type: 'risk', val: 1.5 }, duration: 1 },
+            { text: "Ярмарка душ. Цены выросли.", effect: { type: 'price', val: 1.3 }, duration: 1 },
+            { text: "Дождливая погода. Меньше свидетелей.", effect: { type: 'risk', val: 0.7 }, duration: 1 }
+        ];
+
+        // --- GAME ENGINE ---
+        const Game = {
+            state: {
+                money: 0,
+                karma: 0,
+                wanted: 0,
+                turn: 1,
+                inventory: [], // Array of souls
+                playerClass: null,
+                activeEffect: null, // Current event effect
+                gameOver: false
+            },
+
+            init: function() {
+                this.loadState();
+                if (this.state.playerClass) {
+                    this.startGameLoop();
+                } else {
+                    this.renderClassSelection();
+                }
+            },
+
+            selectClass: function(classKey) {
+                this.state.playerClass = classKey;
+                this.log(`Вы выбрали путь: ${CLASSES[classKey].name}`);
+                this.saveState();
+                this.startGameLoop();
+                this.ui.showScreen('game-screen');
+            },
+
+            renderClassSelection: function() {
+                const container = document.getElementById('class-selection');
+                container.innerHTML = '';
+                for (const [key, cls] of Object.entries(CLASSES)) {
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <h3>${cls.name}</h3>
+                        <p>${cls.desc}</p>
+                        <p class="bonus">▲ ${cls.bonusTxt}</p>
+                        <p class="malus">▼ ${cls.malusTxt}</p>
+                    `;
+                    card.onclick = () => this.selectClass(key);
+                    container.appendChild(card);
+                }
+                this.ui.showScreen('start-screen');
+            },
+
+            startGameLoop: function() {
+                this.ui.updateStats();
+                this.newTurn();
+            },
+
+            newTurn: function() {
+                if (this.state.gameOver) return;
+                
+                // Event Phase
+                const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+                this.state.activeEffect = event.effect;
+                this.log(`Ход ${this.state.turn}: ${event.text}`, 'important');
+
+                this.renderActions('main');
+            },
+
+            actions: {
+                steal: function() {
+                    Game.renderActions('districts');
+                },
+                
+                attemptSteal: function(districtId) {
+                    const district = DISTRICTS.find(d => d.id === districtId);
+                    const cls = CLASSES[Game.state.playerClass];
+                    
+                    // Risk Calc
+                    let risk = district.risk;
+                    if (Game.state.activeEffect && Game.state.activeEffect.type === 'risk') {
+                        if (Game.state.playerClass !== 'cynic') { // Cynic immune
+                            risk *= Game.state.activeEffect.val;
+                        }
+                    }
+
+                    // Attempt
+                    const roll = Math.random() * 100;
+                    const success = roll > risk;
+
+                    if (success) {
+                        // Reward Calc
+                        let value = Math.floor(Math.random() * (district.reward.max - district.reward.min + 1)) + district.reward.min;
+                        const soul = { name: "Душа " + Game.utils.randomId(), value: value, origin: district.name };
+                        
+                        Game.state.inventory.push(soul);
+                        Game.log(`Успех! Украдена ${soul.name} из ${district.name} (Оценка: ${value})`, 'success');
+                    } else {
+                        // Fail
+                        let wantedIncrease = 15; // Base penalty
+                        if (cls.name === 'Карьерист') wantedIncrease *= cls.malus.wantedRate || 1; 
+                        if (cls.name === 'Тихий') wantedIncrease *= cls.bonus.failReduction || 1;
+
+                        Game.state.wanted += Math.floor(wantedIncrease);
+                        Game.log(`Провал! Вас заметили. Розыск +${Math.floor(wantedIncrease)}%`, 'danger');
+                    }
+
+                    Game.endAction();
+                },
+
+                sell: function() {
+                    if (Game.state.inventory.length === 0) {
+                        Game.log("Инвентарь пуст. Нечего продавать.", 'danger');
+                        return;
+                    }
+                    Game.renderActions('sell');
+                },
+
+                confirmSell: function(index) {
+                    const soul = Game.state.inventory.splice(index, 1)[0];
+                    const cls = CLASSES[Game.state.playerClass];
+
+                    let price = soul.value;
+                    
+                    // Class Modifiers
+                    if (cls.name === 'Карьерист') price *= cls.bonus.sellMultiplier || 1;
+                    if (cls.name === 'Идеалист') price *= cls.malus.sellMultiplier || 1;
+                    if (cls.name === 'Тихий') price *= cls.malus.incomeMultiplier || 1;
+
+                    // Event Modifiers
+                    if (Game.state.activeEffect && Game.state.activeEffect.type === 'price') {
+                         if (Game.state.playerClass !== 'cynic') price *= Game.state.activeEffect.val;
+                    }
+
+                    const finalPrice = Math.floor(price);
+                    Game.state.money += finalPrice;
+                    Game.log(`Продана ${soul.name} за ${finalPrice} монет.`, 'success');
+                    
+                    Game.endAction();
+                },
+
+                chill: function() {
+                    const reduction = 20;
+                    Game.state.wanted = Math.max(0, Game.state.wanted - reduction);
+                    Game.log(`Вы залегли на дно. Розыск снижен на ${reduction}%.`);
+                    Game.endAction();
+                }
+            },
+
+            endAction: function() {
+                this.state.turn++;
+                this.checkWinCondition();
+                if (!this.state.gameOver) {
+                    this.saveState();
+                    this.ui.updateStats();
+                    this.newTurn();
+                }
+            },
+
+            checkWinCondition: function() {
+                if (this.state.money >= GAME_GOAL) {
+                    this.gameOver(true);
+                } else if (this.state.wanted >= MAX_WANTED) {
+                    this.gameOver(false);
+                }
+            },
+
+            gameOver: function(win) {
+                this.state.gameOver = true;
+                this.ui.showScreen('game-over-screen');
+                const title = document.getElementById('end-title');
+                const reason = document.getElementById('end-reason');
+                
+                if (win) {
+                    title.innerText = "ПОБЕДА";
+                    title.style.color = "var(--success-color)";
+                    reason.innerText = "Вы сколотили состояние и покинули город.";
+                } else {
+                    title.innerText = "АРЕСТ";
+                    title.style.color = "var(--danger-color)";
+                    reason.innerText = "Вас поймали агенты Вечности.";
+                }
+                document.getElementById('final-score').innerText = `${this.state.money} монет`;
+                
+                localStorage.removeItem('soulBrokerState');
+            },
+
+            restart: function() {
+                localStorage.removeItem('soulBrokerState');
+                location.reload();
+            },
+
+            // --- UI RENDERER ---
+            renderActions: function(mode) {
+                const panel = document.getElementById('action-panel');
+                panel.innerHTML = '';
+
+                if (mode === 'main') {
+                    // Steal Button
+                    const btnSteal = document.createElement('button');
+                    btnSteal.innerText = '💀 Украсть Душу';
+                    btnSteal.onclick = () => this.actions.steal();
+                    panel.appendChild(btnSteal);
+
+                    // Sell Button
+                    const btnSell = document.createElement('button');
+                    btnSell.innerText = `💰 Банк (${this.state.inventory.length})`;
+                    btnSell.onclick = () => this.actions.sell();
+                    btnSell.disabled = this.state.inventory.length === 0;
+                    panel.appendChild(btnSell);
+
+                    // Chill Button
+                    const btnChill = document.createElement('button');
+                    btnChill.innerText = '☕ Переждать';
+                    btnChill.onclick = () => this.actions.chill();
+                    panel.appendChild(btnChill);
+
+                } else if (mode === 'districts') {
+                    panel.style.display = 'grid'; // Reset if needed
+                    DISTRICTS.forEach(d => {
+                        const btn = document.createElement('button');
+                        btn.innerHTML = `${d.name}<br><span style="font-size:0.7em">Риск: ${d.risk}%</span>`;
+                        btn.onclick = () => this.actions.attemptSteal(d.id);
+                        panel.appendChild(btn);
+                    });
+                     // Back button
+                    const back = document.createElement('button');
+                    back.innerText = 'Назад';
+                    back.onclick = () => this.renderActions('main');
+                    back.className = 'btn-danger';
+                    panel.appendChild(back);
+
+                } else if (mode === 'sell') {
+                     this.state.inventory.forEach((soul, idx) => {
+                        const btn = document.createElement('button');
+                        btn.innerText = `${soul.name} (${Math.floor(soul.value)})`;
+                        btn.onclick = () => this.actions.confirmSell(idx);
+                        panel.appendChild(btn);
+                    });
+                    const back = document.createElement('button');
+                    back.innerText = 'Назад';
+                    back.onclick = () => this.renderActions('main');
+                    back.className = 'btn-danger';
+                    panel.appendChild(back);
+                }
+            },
+
+            log: function(msg, type = '') {
+                const log = document.getElementById('game-log');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.innerText = msg;
+                log.prepend(entry);
+            },
+
+            ui: {
+                showScreen: function(id) {
+                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                    document.getElementById(id).classList.add('active');
+                },
+                updateStats: function() {
+                    document.getElementById('stat-turn').innerText = `🌙 Ход: ${Game.state.turn}`;
+                    document.getElementById('stat-money').innerText = `💎 ${Game.state.money}`;
+                    
+                    const w = document.getElementById('stat-wanted');
+                    w.innerText = `👁️ ${Game.state.wanted}%`;
+                    
+                    // Simple wanted visual
+                    if (Game.state.wanted < 30) w.style.color = 'var(--success-color)';
+                    else if (Game.state.wanted < 70) w.style.color = '#ffd700'; // Gold
+                    else w.style.color = 'var(--danger-color)';
+                }
+            },
+
+            // --- UTILS ---
+            utils: {
+                randomId: () => Math.random().toString(36).substr(2, 5).toUpperCase()
+            },
+
+            // --- STORAGE ---
+            saveState: function() {
+                localStorage.setItem('soulBrokerState', JSON.stringify(this.state));
+            },
+            loadState: function() {
+                const saved = localStorage.getItem('soulBrokerState');
+                if (saved) {
+                    this.state = JSON.parse(saved);
+                    this.ui.showScreen('game-screen');
+                    this.log('Игра загружена.', 'important');
+                    this.ui.updateStats();
+                }
+            }
+        };
+
+        // Init
+        window.onload = () => Game.init();
+
+    </script>
+</body>
+</html>
