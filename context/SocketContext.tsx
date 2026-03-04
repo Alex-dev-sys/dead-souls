@@ -134,7 +134,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const s = io({ path: "/socket.io", autoConnect: true });
+    const socketBase = process.env.NEXT_PUBLIC_SOCKET_URL || undefined;
+    const s = io(socketBase, { path: "/socket.io", autoConnect: true });
 
     s.on("connect", () => {
       setIsConnected(true);
