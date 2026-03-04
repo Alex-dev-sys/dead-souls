@@ -308,10 +308,10 @@ export default function CityMap() {
                 <circle cx="400" cy="300" r="8" fill="#333" />
 
                 {/* Hover overlays */}
-                <rect x="5" y="5" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-purple-500/50 hover:fill-purple-500/5 transition-all duration-500" strokeWidth="3" />
-                <rect x="425" y="5" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-blue-500/50 hover:fill-blue-500/5 transition-all duration-500" strokeWidth="3" />
-                <rect x="5" y="325" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-emerald-500/50 hover:fill-emerald-500/5 transition-all duration-500" strokeWidth="3" />
-                <rect x="425" y="325" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-orange-500/50 hover:fill-orange-500/5 transition-all duration-500" strokeWidth="3" />
+                <rect x="5" y="5" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-purple-500/50 hover:fill-purple-500/5 transition-all duration-500" strokeWidth="3" pointerEvents="none" />
+                <rect x="425" y="5" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-blue-500/50 hover:fill-blue-500/5 transition-all duration-500" strokeWidth="3" pointerEvents="none" />
+                <rect x="5" y="325" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-emerald-500/50 hover:fill-emerald-500/5 transition-all duration-500" strokeWidth="3" pointerEvents="none" />
+                <rect x="425" y="325" width="370" height="270" rx="8" fill="transparent" stroke="transparent" className="hover:stroke-orange-500/50 hover:fill-orange-500/5 transition-all duration-500" strokeWidth="3" pointerEvents="none" />
             </svg>
         </div>
     );
