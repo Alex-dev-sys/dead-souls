@@ -16,8 +16,8 @@ const TURN_TIMER_MS = 45000; // 45 seconds
 const MAX_PLAYERS = 4;
 
 const NAMES = [
-    "Р’РѕСЂРѕРЅ", "РўРµРЅСЊ", "РџСЂРёР·СЂР°Рє", "Р›РёСЃ", "РЁР°РєР°Р»", "РљРѕР±СЂР°",
-    "Р’РѕР»Рє", "РЇСЃС‚СЂРµР±", "РЎРєРѕСЂРїРёРѕРЅ", "Р“Р°РґСЋРєР°", "РџР°РЅС‚РµСЂР°", "РњР°РЅС‚РёСЃ"
+    "Raven", "Shade", "Ghost", "Fox", "Jackal", "Cobra",
+    "Wolf", "Hawk", "Scorpion", "Viper", "Panther", "Mantis"
 ];
 
 type ClassId = "careerist" | "idealist" | "quiet" | "cynic";
@@ -41,76 +41,76 @@ type ClassConfig = {
 
 const CLASSES: Record<ClassId, ClassConfig> = {
     careerist: {
-        name: "РљР°СЂСЊРµСЂРёСЃС‚",
-        desc: "РњР°СЃС‚РµСЂ СЃРґРµР»РѕРє. РђРєС‚РёРІРЅР°СЏ СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ: РџСЂРѕРґР°С‚СЊ РґСѓС€Сѓ x2.",
+        name: "Карьерист",
+        desc: "Мастер сделок. Активная способность: Продать душу x2.",
         stats: { sellMult: 1.2, wantedRate: 1.1, failReduction: 1.0, eventImmunity: false },
-        ability: { id: 'insider', name: 'РРЅСЃР°Р№Рґ', cooldown: 3, desc: 'РџСЂРѕРґР°С‚СЊ СЃР»РµРґСѓСЋС‰СѓСЋ РґСѓС€Сѓ РІ 2 СЂР°Р·Р° РґРѕСЂРѕР¶Рµ' }
+        ability: { id: 'insider', name: 'Инсайд', cooldown: 3, desc: 'Продать следующую душу в 2 раза дороже' }
     },
     idealist: {
-        name: "РРґРµР°Р»РёСЃС‚",
-        desc: "Р’РґРѕС…РЅРѕРІРёС‚РµР»СЊ. РђРєС‚РёРІРЅР°СЏ СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ: РЎРЅРёР·РёС‚СЊ СЂРѕР·С‹СЃРє РІСЃРµРј.",
+        name: "Идеалист",
+        desc: "Вдохновитель. Активная способность: Снизить розыск всем.",
         stats: { sellMult: 0.9, wantedRate: 0.9, failReduction: 1.0, eventImmunity: false },
-        ability: { id: 'preach', name: 'РџСЂРѕРїРѕРІРµРґСЊ', cooldown: 4, desc: 'РЎРЅРёР·РёС‚СЊ СЂРѕР·С‹СЃРє СЃРµР±Рµ (-30%) Рё РґСЂСѓРіРёРј (-10%)' }
+        ability: { id: 'preach', name: 'Проповедь', cooldown: 4, desc: 'Снизить розыск себе (-30%) и другим (-10%)' }
     },
     quiet: {
-        name: "РўРёС…РёР№",
-        desc: "РќРµРІРёРґРёРјРєР°. РђРєС‚РёРІРЅР°СЏ СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ: Р‘РµР·РѕРїР°СЃРЅР°СЏ РєСЂР°Р¶Р°.",
+        name: "Тихий",
+        desc: "Невидимка. Активная способность: Безопасная кража.",
         stats: { sellMult: 1.0, wantedRate: 1.0, failReduction: 0.5, eventImmunity: false },
-        ability: { id: 'shadow', name: 'РўРµРЅСЊ', cooldown: 3, desc: 'РЎР»РµРґСѓСЋС‰Р°СЏ РєСЂР°Р¶Р° РёРјРµРµС‚ 0% СЂРёСЃРєР°' }
+        ability: { id: 'shadow', name: 'Тень', cooldown: 3, desc: 'Следующая кража имеет 0% риска' }
     },
     cynic: {
-        name: "Р¦РёРЅРёРє",
-        desc: "РЎР°Р±РѕС‚Р°Р¶РЅРёРє. РђРєС‚РёРІРЅР°СЏ СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ: РџРѕРґСЃС‚Р°РІРёС‚СЊ СЃРѕРїРµСЂРЅРёРєР°.",
+        name: "Циник",
+        desc: "Саботажник. Активная способность: Подставить соперника.",
         stats: { sellMult: 1.0, wantedRate: 1.0, failReduction: 1.0, eventImmunity: true },
-        ability: { id: 'snitch', name: 'Р”РѕРЅРѕСЃ', cooldown: 3, desc: 'РџРѕРІС‹СЃРёС‚СЊ СЂРѕР·С‹СЃРє СЃР»СѓС‡Р°Р№РЅРѕРјСѓ СЃРѕРїРµСЂРЅРёРєСѓ РЅР° +25%' }
+        ability: { id: 'snitch', name: 'Донос', cooldown: 3, desc: 'Повысить розыск случайному сопернику на +25%' }
     }
 };
 
 const ITEMS = [
-    { id: 'cloak', name: 'РџР»Р°С‰-РЅРµРІРёРґРёРјРєР°', cost: 150, desc: 'РЎРЅРёР¶Р°РµС‚ СЂРёСЃРє РєСЂР°Р¶Рё РЅР° 20% (РїР°СЃСЃРёРІРЅРѕ)' },
-    { id: 'dagger', name: 'РљРёРЅР¶Р°Р»', cost: 200, desc: 'РЈРІРµР»РёС‡РёРІР°РµС‚ С†РµРЅСѓ РїСЂРѕРґР°Р¶Рё РґСѓС€Рё РЅР° 15% (РїР°СЃСЃРёРІРЅРѕ)' },
+    { id: 'cloak', name: 'Плащ-невидимка', cost: 150, desc: 'Снижает риск кражи на 20% (пассивно)' },
+    { id: 'dagger', name: 'Кинжал', cost: 200, desc: 'Увеличивает цену продажи души на 15% (пассивно)' },
     { id: 'intel_map', name: 'Intel Map', cost: 140, desc: '-10% steal risk (passive)' },
     { id: 'talisman', name: 'Luck Talisman', cost: 180, desc: '+20% loot value on successful steal (passive)' },
-    { id: 'bribe', name: 'Р’Р·СЏС‚РєР°', cost: 100, desc: 'РњРіРЅРѕРІРµРЅРЅРѕ СЃРЅРёР¶Р°РµС‚ СЂРѕР·С‹СЃРє РЅР° 30%', consume: true }
+    { id: 'bribe', name: 'Взятка', cost: 100, desc: 'Мгновенно снижает розыск на 30%', consume: true }
 ];
 
 const DISTRICTS = [
-    { id: 'slums', name: 'РўСЂСѓС‰РѕР±С‹', risk: 10, minReward: 30, maxReward: 80 },
-    { id: 'business', name: 'Р”РµР»РѕРІРѕР№ С†РµРЅС‚СЂ', risk: 50, minReward: 150, maxReward: 350 },
-    { id: 'park', name: 'РЎС‚Р°СЂС‹Р№ РџР°СЂРє', risk: 25, minReward: 60, maxReward: 140 },
-    { id: 'residential', name: 'Р–РёР»РѕР№ РјР°СЃСЃРёРІ', risk: 30, minReward: 80, maxReward: 180 }
+    { id: 'slums', name: 'Трущобы', risk: 10, minReward: 30, maxReward: 80 },
+    { id: 'business', name: 'Деловой центр', risk: 50, minReward: 150, maxReward: 350 },
+    { id: 'park', name: 'Старый Парк', risk: 25, minReward: 60, maxReward: 140 },
+    { id: 'residential', name: 'Жилой массив', risk: 30, minReward: 80, maxReward: 180 }
 ];
 
 const EVENTS = [
-    { text: "РўРёС…Р°СЏ РЅРѕС‡СЊ. Р“РѕСЂРѕРґ СЃРїРёС‚.", riskMult: 1.0, priceMult: 1.0 },
-    { text: "РћР±Р»Р°РІР°! РџРѕР»РёС†РёСЏ РЅР° С‡РµРєСѓ.", riskMult: 1.5, priceMult: 1.0 },
-    { text: "Р”РµС„РёС†РёС‚ РґСѓС€! Р¦РµРЅС‹ РІР·Р»РµС‚РµР»Рё.", riskMult: 1.0, priceMult: 1.5 },
-    { text: "Р›РёРІРµРЅСЊ. РЎРІРёРґРµС‚РµР»РµР№ РЅРµС‚.", riskMult: 0.6, priceMult: 1.0 },
-    { text: "РљСЂРѕРІР°РІР°СЏ Р›СѓРЅР°. Р РёС‚СѓР°Р» С‚СЂРµР±СѓРµС‚ Р¶РµСЂС‚РІ.", riskMult: 1.2, priceMult: 1.2 },
-    { text: "РџСЂР°Р·РґРЅРёРє РІ РіРѕСЂРѕРґРµ. Р’СЃРµ РїСЊСЏРЅС‹.", riskMult: 0.5, priceMult: 0.8 },
-    { text: "РљРѕРјРµРЅРґР°РЅС‚СЃРєРёР№ С‡Р°СЃ. РћРїР°СЃРЅРѕ!", riskMult: 1.8, priceMult: 1.1 }
+    { text: "Тихая ночь. Город спит.", riskMult: 1.0, priceMult: 1.0 },
+    { text: "Облава! Полиция на чеку.", riskMult: 1.5, priceMult: 1.0 },
+    { text: "Дефицит душ! Цены взлетели.", riskMult: 1.0, priceMult: 1.5 },
+    { text: "Ливень. Свидетелей нет.", riskMult: 0.6, priceMult: 1.0 },
+    { text: "Кровавая Луна. Ритуал требует жертв.", riskMult: 1.2, priceMult: 1.2 },
+    { text: "Праздник в городе. Все пьяны.", riskMult: 0.5, priceMult: 0.8 },
+    { text: "Комендантский час. Опасно!", riskMult: 1.8, priceMult: 1.1 }
 ];
 
 const SOUL_NAMES = [
-    "РџРѕСЌС‚Р°", "РЈР±РёР№С†С‹", "РЎРІСЏС‚РѕС€Рё", "Р’РѕСЂР°", "РљРѕСЂРѕР»СЏ",
-    "РќРёС‰РµРіРѕ", "Р’РґРѕРІС‹", "РЎРѕР»РґР°С‚Р°", "РЁСѓС‚Р°", "РџР°Р»Р°С‡Р°"
+    "Поэта", "Убийцы", "Святоши", "Вора", "Короля",
+    "Нищего", "Вдовы", "Солдата", "Шута", "Палача"
 ];
 
 const ENCOUNTERS = [
     {
-        id: 'cop', text: "Р’Р°СЃ РѕСЃС‚Р°РЅРѕРІРёР» РїР°С‚СЂСѓР»СЊРЅС‹Р№!",
+        id: 'cop', text: "Вас остановил патрульный!",
         options: [
-            { id: 'run', text: "Р‘РµР¶Р°С‚СЊ (50% С€Р°РЅСЃ СѓСЃРїРµС…Р°, РёРЅР°С‡Рµ +20% СЂРѕР·С‹СЃРєР°)" },
-            { id: 'bribe', text: "Р”Р°С‚СЊ РІР·СЏС‚РєСѓ (-50 РјРѕРЅРµС‚)", cost: 50 },
-            { id: 'talk', text: "Р—Р°РіРѕРІРѕСЂРёС‚СЊ Р·СѓР±С‹ (РЁР°РЅСЃ Р·Р°РІРёСЃРёС‚ РѕС‚ РєР»Р°СЃСЃР°)" }
+            { id: 'run', text: "Бежать (50% шанс успеха, иначе +20% розыска)" },
+            { id: 'bribe', text: "Дать взятку (-50 монет)", cost: 50 },
+            { id: 'talk', text: "Заговорить зубы (Шанс зависит от класса)" }
         ]
     },
     {
-        id: 'rival', text: "РљРѕРЅРєСѓСЂРµРЅС‚ РїСЂРµРґР»Р°РіР°РµС‚ СЃРґРµР»РєСѓ.",
+        id: 'rival', text: "Конкурент предлагает сделку.",
         options: [
-            { id: 'accept', text: "РљСѓРїРёС‚СЊ РёРЅС„Сѓ (-30 РјРѕРЅРµС‚, -10% СЂРѕР·С‹СЃРєР°)", cost: 30 },
-            { id: 'ignore', text: "РРіРЅРѕСЂРёСЂРѕРІР°С‚СЊ" },
-            { id: 'rob', text: "РћРіСЂР°Р±РёС‚СЊ РµРіРѕ (Р РёСЃРє!)" }
+            { id: 'accept', text: "Купить инфу (-30 монет, -10% розыска)", cost: 30 },
+            { id: 'ignore', text: "Игнорировать" },
+            { id: 'rob', text: "Ограбить его (Риск!)" }
         ]
     }
 ];
@@ -195,7 +195,7 @@ function toClientRoom(room: Room) {
 function pickName(roomId: string): string {
     if (!usedNames[roomId]) usedNames[roomId] = [];
     const available = NAMES.filter(n => !usedNames[roomId].includes(n));
-    const name = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : `РђРіРµРЅС‚-${Math.floor(Math.random() * 999)}`;
+    const name = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : `Агент-${Math.floor(Math.random() * 999)}`;
     usedNames[roomId].push(name);
     return name;
 }
@@ -276,7 +276,7 @@ function startTurnTimer(io: Server, roomId: string) {
         if (player && !player.isEliminated) {
             // Apply penalty for AFK
             player.wantedLevel = Math.min(MAX_WANTED, player.wantedLevel + 5);
-            emitLog(io, roomId, `рџ’¤ ${player.nickname} СѓСЃРЅСѓР». Р РѕР·С‹СЃРє +5%.`, 'warning');
+            emitLog(io, roomId, `💤 ${player.nickname} уснул. Розыск +5%.`, 'warning');
 
             // Should also clear any active encounter if timed out
             if (room.activeEncounter && room.activeEncounter.playerId === player.socketId) {
@@ -304,7 +304,7 @@ function advanceTurn(io: Server, room_id: string) {
     if (room.activePlayerIndex === 0) {
         room.turn++;
         room.currentEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)];
-        emitLog(io, room_id, `рџЊ™ Р РђРЈРќР” ${room.turn}: ${room.currentEvent.text}`, 'info');
+        emitLog(io, room_id, `🌙 РАУНД ${room.turn}: ${room.currentEvent.text}`, 'info');
     }
 
     room.activeEncounter = null;
@@ -326,20 +326,20 @@ function checkPlayerState(io: Server, roomId: string, player: Player) {
     if (player.money >= GAME_GOAL) {
         room.status = 'ended';
         room.winner = player.nickname;
-        emitLog(io, roomId, `рџ‘‘ ${player.nickname} вЂ” РљРћР РћР›Р¬ Р”РЈРЁ! РџРћР‘Р•Р”Рђ!`, 'success');
+        emitLog(io, roomId, `👑 ${player.nickname} — КОРОЛЬ ДУШ! ПОБЕДА!`, 'success');
         if (room.turnTimer) clearTimeout(room.turnTimer);
         broadcastRoom(io, roomId);
         return true;
     }
     if (player.wantedLevel >= MAX_WANTED) {
         player.isEliminated = true;
-        emitLog(io, roomId, `рџљ” ${player.nickname} СЃС…РІР°С‡РµРЅ РїРѕР»РёС†РёРµР№!`, 'danger');
+        emitLog(io, roomId, `🚔 ${player.nickname} схвачен полицией!`, 'danger');
 
         const alive = room.players.filter(p => !p.isEliminated);
         if (alive.length === 1) {
             room.status = 'ended';
             room.winner = alive[0].nickname;
-            emitLog(io, roomId, `рџЏ† ${alive[0].nickname} РїРѕР±РµРґРёР» (РѕСЃС‚Р°Р»СЊРЅС‹Рµ Р°СЂРµСЃС‚РѕРІР°РЅС‹)!`, 'success');
+            emitLog(io, roomId, `🏆 ${alive[0].nickname} победил (остальные арестованы)!`, 'success');
             if (room.turnTimer) clearTimeout(room.turnTimer);
             broadcastRoom(io, roomId);
             return true;
@@ -380,7 +380,7 @@ app.prepare().then(() => {
         socket.on("join_room", (roomId: string) => {
             const room = rooms[roomId];
             if (!room || room.status !== 'lobby' || room.players.length >= MAX_PLAYERS) {
-                return socket.emit("error_msg", "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё");
+                return socket.emit("error_msg", "Не удалось войти");
             }
             if (room.players.find(p => p.socketId === socket.id)) return;
 
@@ -400,10 +400,10 @@ app.prepare().then(() => {
 
         socket.on("rejoin_game", ({ roomId, reconnectToken }: RejoinPayload) => {
             const room = rooms[roomId];
-            if (!room) return socket.emit("error_msg", "РљРѕРјРЅР°С‚Р° РЅРµ РЅР°Р№РґРµРЅР°");
+            if (!room) return socket.emit("error_msg", "Комната не найдена");
 
             const player = room.players.find((p) => p.reconnectToken === reconnectToken);
-            if (!player) return socket.emit("error_msg", "РРіСЂРѕРє РЅРµ РЅР°Р№РґРµРЅ");
+            if (!player) return socket.emit("error_msg", "Игрок не найден");
 
             // Update socket ID
             clearReconnectTimer(player.reconnectToken);
@@ -413,7 +413,7 @@ app.prepare().then(() => {
 
             const ack: JoinRoomAck = { roomId, playerId: socket.id, nickname: player.nickname, reconnectToken: player.reconnectToken };
             socket.emit("joined_room", ack);
-            emitLog(io, roomId, `в™»пёЏ ${player.nickname} РІРµСЂРЅСѓР»СЃСЏ РІ РёРіСЂСѓ.`, 'info');
+            emitLog(io, roomId, `♻️ ${player.nickname} вернулся в игру.`, 'info');
             broadcastRoom(io, roomId);
         });
 
@@ -445,7 +445,7 @@ app.prepare().then(() => {
             room.activePlayerIndex = 0;
             room.currentEvent = EVENTS[0];
 
-            emitLog(io, roomId, "рџ’Ђ РР‘Р Рђ РќРђР§РђР›РђРЎР¬! Р¦РµР»СЊ: 1500 РјРѕРЅРµС‚.", 'info');
+            emitLog(io, roomId, "💀 ИГРА НАЧАЛАСЬ! Цель: 1500 монет.", 'info');
             broadcastRoom(io, roomId);
             startTurnTimer(io, roomId);
         });
@@ -574,7 +574,7 @@ app.prepare().then(() => {
             player.inventory.splice(soulIndex, 1);
             player.money += price;
 
-            emitLog(io, roomId, `рџ’° ${player.nickname} РїСЂРѕРґР°Р» РґСѓС€Сѓ Р·Р° ${price} (x${mult.toFixed(1)})`, 'success');
+            emitLog(io, roomId, `💰 ${player.nickname} продал душу за ${price} (x${mult.toFixed(1)})`, 'success');
 
             if (checkPlayerState(io, roomId, player)) return;
             advanceTurn(io, roomId);
@@ -588,7 +588,7 @@ app.prepare().then(() => {
 
             const item = ITEMS.find(i => i.id === itemId);
             if (!item) return;
-            if (player.money < item.cost) return socket.emit("error_msg", "РќРµ С…РІР°С‚Р°РµС‚ РґРµРЅРµРі");
+            if (player.money < item.cost) return socket.emit("error_msg", "Не хватает денег");
 
             player.money -= item.cost;
 
@@ -596,12 +596,12 @@ app.prepare().then(() => {
                 // Instant effect
                 if (itemId === 'bribe') {
                     player.wantedLevel = Math.max(0, player.wantedLevel - 30);
-                    emitLog(io, roomId, `рџ¤ќ ${player.nickname} РґР°Р» РєСЂСѓРїРЅСѓСЋ РІР·СЏС‚РєСѓ. Р РѕР·С‹СЃРє -30%.`, 'success');
+                    emitLog(io, roomId, `🤝 ${player.nickname} дал крупную взятку. Розыск -30%.`, 'success');
                 }
             } else {
                 // Inventory item
                 player.items.push(itemId);
-                emitLog(io, roomId, `рџ›’ ${player.nickname} РєСѓРїРёР» РїСЂРµРґРјРµС‚: ${item.name}`, 'info');
+                emitLog(io, roomId, `🛒 ${player.nickname} купил предмет: ${item.name}`, 'info');
             }
 
             checkPlayerState(io, roomId, player);
@@ -622,7 +622,7 @@ app.prepare().then(() => {
                 player.money += passiveIncome;
             }
             player.wantedLevel = Math.max(0, player.wantedLevel - 20);
-            emitLog(io, roomId, `рџ•¶пёЏ ${player.nickname} stayed low. Wanted -20%${passiveIncome > 0 ? `, +${passiveIncome}$ from contacts` : ""}.`, "info");
+            emitLog(io, roomId, `🕶️ ${player.nickname} stayed low. Wanted -20%${passiveIncome > 0 ? `, +${passiveIncome}$ from contacts` : ""}.`, "info");
 
             if (checkPlayerState(io, roomId, player)) return;
             advanceTurn(io, roomId);
@@ -634,7 +634,7 @@ app.prepare().then(() => {
             const player = room.players[room.activePlayerIndex];
             if (player.socketId !== socket.id) return;
 
-            if (player.abilityCooldown > 0) return socket.emit("error_msg", "РЎРїРѕСЃРѕР±РЅРѕСЃС‚СЊ РЅР° РїРµСЂРµР·Р°СЂСЏРґРєРµ");
+            if (player.abilityCooldown > 0) return socket.emit("error_msg", "Способность на перезарядке");
 
             const cls = CLASSES[player.role!];
             const ab = cls.ability;
@@ -643,7 +643,7 @@ app.prepare().then(() => {
 
             if (ab.id === 'insider') {
                 player.activeBuffs.push('insider');
-                emitLog(io, roomId, `рџ“€ ${player.nickname} Р°РєС‚РёРІРёСЂРѕРІР°Р» РРќРЎРђР™Р”! РЎР»РµРґСѓСЋС‰Р°СЏ РїСЂРѕРґР°Р¶Р° x2.`, 'success');
+                emitLog(io, roomId, `📈 ${player.nickname} активировал ИНСАЙД! Следующая продажа x2.`, 'success');
                 // Free action, turn doesn't end
                 broadcastRoom(io, roomId);
                 return;
@@ -651,7 +651,7 @@ app.prepare().then(() => {
 
             if (ab.id === 'shadow') {
                 player.activeBuffs.push('shadow_walk');
-                emitLog(io, roomId, `рџ‘» ${player.nickname} СѓС€РµР» РІ РўРµРЅСЊ. Р‘РµР·РѕРїР°СЃРЅР°СЏ РєСЂР°Р¶Р°.`, 'success');
+                emitLog(io, roomId, `👻 ${player.nickname} ушел в Тень. Безопасная кража.`, 'success');
                 // Free action
                 broadcastRoom(io, roomId);
                 return;
@@ -664,7 +664,7 @@ app.prepare().then(() => {
                         p.wantedLevel = Math.max(0, p.wantedLevel - 10);
                     }
                 });
-                emitLog(io, roomId, `рџ™Џ ${player.nickname} СЃРјС‹РІР°РµС‚ РіСЂРµС…Рё. Р РѕР·С‹СЃРє РІСЃРµРј СЃРЅРёР¶РµРЅ!`, 'success');
+                emitLog(io, roomId, `🙏 ${player.nickname} смывает грехи. Розыск всем снижен!`, 'success');
                 advanceTurn(io, roomId);
                 return;
             }
@@ -674,9 +674,9 @@ app.prepare().then(() => {
                 if (targets.length > 0) {
                     const victim = targets[Math.floor(Math.random() * targets.length)];
                     victim.wantedLevel += 25;
-                    emitLog(io, roomId, `рџљ” ${player.nickname} СЃРґР°Р» ${victim.nickname} РїРѕР»РёС†РёРё! (+25% СЂРѕР·С‹СЃРєР°)`, 'danger');
+                    emitLog(io, roomId, `🚔 ${player.nickname} сдал ${victim.nickname} полиции! (+25% розыска)`, 'danger');
                 } else {
-                    emitLog(io, roomId, `${player.nickname} С…РѕС‚РµР» РґРѕРЅРµСЃС‚Рё, РЅРѕ РЅРµ РЅР° РєРѕРіРѕ.`, 'warning');
+                    emitLog(io, roomId, `${player.nickname} хотел донести, но не на кого.`, 'warning');
                 }
                 advanceTurn(io, roomId);
                 return;
@@ -708,7 +708,7 @@ app.prepare().then(() => {
             if (!player) return;
 
             player.disconnectedAt = Date.now();
-            emitLog(io, roomId, `рџ”Њ ${player.nickname} РѕС‚РєР»СЋС‡РёР»СЃСЏ. РћРєРЅРѕ РїРµСЂРµРїРѕРґРєР»СЋС‡РµРЅРёСЏ: ${REJOIN_GRACE_MS / 1000} СЃРµРє.`, "warning");
+            emitLog(io, roomId, `🔌 ${player.nickname} отключился. Окно переподключения: ${REJOIN_GRACE_MS / 1000} сек.`, "warning");
             broadcastRoom(io, roomId);
 
             clearReconnectTimer(player.reconnectToken);
@@ -717,7 +717,7 @@ app.prepare().then(() => {
                 if (!targetRoom) return;
                 const samePlayer = targetRoom.players.find((p) => p.reconnectToken === player.reconnectToken);
                 if (!samePlayer || !shouldRemoveDisconnected(samePlayer.disconnectedAt, Date.now(), REJOIN_GRACE_MS)) return;
-                emitLog(io, roomId, `вќЊ ${samePlayer.nickname} РЅРµ РІРµСЂРЅСѓР»СЃСЏ РІРѕРІСЂРµРјСЏ Рё Р±С‹Р» СѓРґР°Р»РµРЅ РёР· РёРіСЂС‹.`, "danger");
+                emitLog(io, roomId, `❌ ${samePlayer.nickname} не вернулся вовремя и был удален из игры.`, "danger");
                 removePlayerFromRoom(io, roomId, samePlayer.socketId);
             }, REJOIN_GRACE_MS);
         });
@@ -746,7 +746,7 @@ function resolveSteal(io: Server, roomId: string, player: Player, dist: District
         // Success
         const rawVal = Math.floor(Math.random() * (dist.maxReward - dist.minReward)) + dist.minReward;
         const val = player.items.includes("talisman") ? Math.floor(rawVal * 1.2) : rawVal;
-        const name = `Р”СѓС€Р° ${SOUL_NAMES[Math.floor(Math.random() * SOUL_NAMES.length)]}`;
+        const name = `Душа ${SOUL_NAMES[Math.floor(Math.random() * SOUL_NAMES.length)]}`;
         player.inventory.push({ id: Date.now().toString(), name, value: val, origin: dist.name });
         emitLog(io, roomId, `Completed Heist: ${player.nickname} stole ${name} (${val})`, 'success');
     } else {
