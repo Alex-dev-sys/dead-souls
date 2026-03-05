@@ -10,6 +10,7 @@ export default function LobbyScreen() {
   const { createRoom, joinRoom, currentRoom, startGame, playerId, isConnected } = useSocket();
   const [roomInput, setRoomInput] = useState("");
   const [copied, setCopied] = useState(false);
+  const buildTag = process.env.NEXT_PUBLIC_BUILD_TAG || "7cd9a79";
 
   const copyCode = () => {
     if (!currentRoom) return;
@@ -149,6 +150,7 @@ export default function LobbyScreen() {
             Сброс сессии
           </button>
         </div>
+        <div className="mt-3 text-center text-[10px] tracking-widest text-slate-500">BUILD {buildTag}</div>
       </div>
     </section>
   );
