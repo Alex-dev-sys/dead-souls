@@ -146,7 +146,7 @@ export default function GameScreen() {
         )}
       </AnimatePresence>
 
-      <header className="grid grid-cols-3 md:grid-cols-7 gap-2 panel p-3">
+      <header className="grid grid-cols-2 md:grid-cols-7 gap-2 panel p-3 md:p-4">
         <div className="stat-pill gap-2 text-cyan-300 font-mono">
           <Clock className="w-4 h-4" /> {countdownSec}s
         </div>
@@ -159,7 +159,7 @@ export default function GameScreen() {
         <div className="stat-pill gap-2 text-amber-200 font-semibold text-xs md:text-sm">
           🔥 x{me.stealStreak}
         </div>
-        <div className="hidden md:flex stat-pill gap-2 text-sky-300 text-sm">
+        <div className="stat-pill gap-2 text-sky-300 text-sm col-span-2 md:col-span-1">
           <User className="w-4 h-4" /> {CLASSES_INFO[me.role as keyof typeof CLASSES_INFO]?.name}
         </div>
         <div className="col-span-2 flex gap-1 justify-end">
@@ -176,7 +176,7 @@ export default function GameScreen() {
         </div>
       </header>
 
-      <div className={cn("text-center h-11 rounded-lg font-bold text-sm transition-colors flex items-center justify-center", isMyTurn ? "bg-emerald-900/30 text-emerald-300 border border-emerald-500/30" : "bg-black/40 text-gray-500")}>
+      <div className={cn("text-center h-11 rounded-xl font-bold text-sm transition-colors flex items-center justify-center border", isMyTurn ? "bg-emerald-900/30 text-emerald-300 border-emerald-500/35 shadow-[0_0_18px_rgba(30,180,140,0.18)]" : "bg-black/40 text-gray-500 border-slate-700/40")}>
         {isMyTurn ? "⚡ ВАШ ХОД" : `Ходит ${activeP?.nickname}...`}
       </div>
 
@@ -192,6 +192,9 @@ export default function GameScreen() {
           </div>
 
           <div className="flex-1 panel overflow-hidden relative min-h-[260px] md:min-h-0">
+            <div className="absolute top-2 left-3 z-10 text-[10px] uppercase tracking-[0.18em] text-slate-400">
+              {tab === "map" ? "Оперативная карта" : "Торговый модуль"}
+            </div>
             {tab === "map" && (
               <div className="absolute inset-0 flex items-center justify-center p-2 md:p-0">
                 <CityMap />
@@ -255,6 +258,7 @@ export default function GameScreen() {
 
         <div className="hidden md:flex md:col-span-4 flex-col gap-2 min-h-0">
           <div className="panel p-3 max-h-[30%] overflow-y-auto">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2">Состав лобби</div>
             <div className="space-y-1">
               {currentRoom.players.map((p) => (
                 <div
@@ -279,6 +283,7 @@ export default function GameScreen() {
           </div>
 
           <div className="flex-1 panel p-3 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2 sticky top-0">Лента событий</div>
             {gameLogs.map((l) => (
               <div key={l.id} className={cn("p-2 rounded border-l-2", l.type === "success" ? "border-emerald-500 bg-emerald-900/20" : l.type === "danger" ? "border-rose-500 bg-rose-900/20" : "border-gray-600 bg-white/5")}>
                 {l.text}
@@ -287,6 +292,7 @@ export default function GameScreen() {
           </div>
 
           <div className="h-[24%] panel p-2 flex flex-col">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2">Комм-канал</div>
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 text-[11px]">
               {chatMessages.map((m, idx) => (
                 <p key={`${m.time}-${idx}`} className="bg-black/30 rounded px-2 py-1">
@@ -311,7 +317,7 @@ export default function GameScreen() {
           </div>
 
           <div className="h-[16%] panel p-2 overflow-y-auto">
-            <h4 className="text-[10px] uppercase text-gray-500 mb-1">Души ({me.inventory.length})</h4>
+            <h4 className="text-[10px] uppercase tracking-[0.18em] text-gray-500 mb-1">Трофеи ({me.inventory.length})</h4>
             <div className="flex flex-wrap gap-1">
               {me.inventory.map((s, i) => (
                 <button
