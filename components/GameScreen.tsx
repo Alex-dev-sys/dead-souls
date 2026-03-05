@@ -111,7 +111,13 @@ export default function GameScreen() {
                 </div>
               ))}
           </div>
-          <button onClick={() => location.reload()} className="w-full btn btn-primary">
+          <button
+            onClick={() => {
+              localStorage.removeItem("sb_session");
+              location.reload();
+            }}
+            className="w-full btn btn-primary"
+          >
             В ЛОББИ
           </button>
         </motion.div>
