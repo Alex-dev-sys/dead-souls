@@ -357,11 +357,18 @@ app.prepare().then(() => {
     const httpServer = createServer(handler);
     const io = new Server(httpServer, {
         cors: {
-            origin: [
-                "https://dead-souls-omega.vercel.app",
-                "https://dead-souls-frrpiu2tq-alexeys-projects-2260f6f3.vercel.app",
-                "https://dead-souls-1a1htkcss-alexeys-projects-2260f6f3.vercel.app",
-            ],
+            origin: (origin, callback) => {
+                // Allow same-origin/server-to-server requests.
+                if (!origin) return callback(null, true);
+
+                const isAllowed =
+                    origin === "https://vibestudy.ru" ||
+                    origin === "https://dead-souls-omega.vercel.app" ||
+                    /^https:\/\/dead-souls-[a-z0-9-]+\.vercel\.app$/i.test(origin);
+
+                if (isAllowed) return callback(null, true);
+                return callback(new Error(`CORS blocked for origin: ${origin}`));
+            },
             methods: ["GET", "POST"],
             credentials: true,
         },
