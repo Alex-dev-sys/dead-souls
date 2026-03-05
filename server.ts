@@ -1,11 +1,11 @@
 ﻿import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import { computeStealRisk, createReconnectToken, getNextActivePlayerIndex, isStealSuccess, sanitizeChatText, shouldRemoveDisconnected } from "./lib/game/core";
+import { computeStealRisk, createReconnectToken, getNextActivePlayerIndex, isAllowedSocketOrigin, isStealSuccess, sanitizeChatText, shouldRemoveDisconnected } from "./lib/game/core";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
-const port = 3000;
+const hostname = process.env.APP_HOST || "0.0.0.0";
+const port = Number(process.env.PORT || 3000);
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
@@ -128,6 +128,7 @@ interface Player {
     items: string[];
     abilityCooldown: number;
     activeBuffs: BuffId[]; // e.g. 'shadow_walk', 'insider'
+    stealStreak: number;
     isEliminated: boolean;
     reconnectToken: string;
     disconnectedAt: number | null;
@@ -182,6 +183,7 @@ function toClientRoom(room: Room) {
             items: player.items,
             abilityCooldown: player.abilityCooldown,
             activeBuffs: player.activeBuffs,
+            stealStreak: player.stealStreak,
             isEliminated: player.isEliminated,
             isDisconnected: player.disconnectedAt !== null,
         })),
@@ -355,18 +357,11 @@ function checkPlayerState(io: Server, roomId: string, player: Player) {
 
 app.prepare().then(() => {
     const httpServer = createServer(handler);
+    const staticAllowedOrigins = ["https://vibestudy.ru", "https://dead-souls-omega.vercel.app"];
     const io = new Server(httpServer, {
         cors: {
             origin: (origin, callback) => {
-                // Allow same-origin/server-to-server requests.
-                if (!origin) return callback(null, true);
-
-                const isAllowed =
-                    origin === "https://vibestudy.ru" ||
-                    origin === "https://dead-souls-omega.vercel.app" ||
-                    /^https:\/\/dead-souls-[a-z0-9-]+\.vercel\.app$/i.test(origin);
-
-                if (isAllowed) return callback(null, true);
+                if (isAllowedSocketOrigin(origin, staticAllowedOrigins)) return callback(null, true);
                 return callback(new Error(`CORS blocked for origin: ${origin}`));
             },
             methods: ["GET", "POST"],
@@ -399,7 +394,7 @@ app.prepare().then(() => {
             room.players.push({
                 socketId: socket.id, nickname, role: null,
                 money: 0, wantedLevel: 0, inventory: [], items: [],
-                abilityCooldown: 0, activeBuffs: [], isEliminated: false,
+                abilityCooldown: 0, activeBuffs: [], stealStreak: 0, isEliminated: false,
                 reconnectToken, disconnectedAt: null,
             });
             socket.join(roomId);
@@ -446,6 +441,7 @@ app.prepare().then(() => {
                 p.items = [];
                 p.abilityCooldown = 0;
                 p.activeBuffs = [];
+                p.stealStreak = 0;
                 p.isEliminated = false;
                 p.disconnectedAt = null;
             });
@@ -632,7 +628,14 @@ app.prepare().then(() => {
                 player.money += passiveIncome;
             }
             player.wantedLevel = Math.max(0, player.wantedLevel - 20);
-            emitLog(io, roomId, `🕶️ ${player.nickname} stayed low. Wanted -20%${passiveIncome > 0 ? `, +${passiveIncome}$ from contacts` : ""}.`, "info");
+            const hadStreak = player.stealStreak > 0;
+            player.stealStreak = 0;
+            emitLog(
+                io,
+                roomId,
+                `🕶️ ${player.nickname} stayed low. Wanted -20%${passiveIncome > 0 ? `, +${passiveIncome}$ from contacts` : ""}${hadStreak ? ", combo reset" : ""}.`,
+                "info"
+            );
 
             if (checkPlayerState(io, roomId, player)) return;
             advanceTurn(io, roomId);
@@ -757,14 +760,18 @@ function resolveSteal(io: Server, roomId: string, player: Player, dist: District
     if (isStealSuccess(roll, risk)) {
         // Success
         const rawVal = Math.floor(Math.random() * (dist.maxReward - dist.minReward)) + dist.minReward;
-        const val = player.items.includes("talisman") ? Math.floor(rawVal * 1.2) : rawVal;
+        const itemBoost = player.items.includes("talisman") ? 1.2 : 1;
+        const streakBoost = 1 + Math.min(player.stealStreak * 0.04, 0.2);
+        const val = Math.floor(rawVal * itemBoost * streakBoost);
         const name = `Душа ${SOUL_NAMES[Math.floor(Math.random() * SOUL_NAMES.length)]}`;
         player.inventory.push({ id: Date.now().toString(), name, value: val, origin: dist.name });
-        emitLog(io, roomId, `Completed Heist: ${player.nickname} stole ${name} (${val})`, 'success');
+        player.stealStreak += 1;
+        emitLog(io, roomId, `Completed Heist: ${player.nickname} stole ${name} (${val})${player.stealStreak > 1 ? ` | combo x${player.stealStreak}` : ""}`, 'success');
     } else {
         // Fail
         let pen = 15;
         if (cls.stats.failReduction) pen *= cls.stats.failReduction;
+        player.stealStreak = 0;
         player.wantedLevel += Math.floor(pen);
         emitLog(io, roomId, `Failed Heist: ${player.nickname} noticed! +${Math.floor(pen)}% Wanted`, 'danger');
     }

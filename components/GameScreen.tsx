@@ -46,6 +46,7 @@ export default function GameScreen() {
     gameLogs,
     chatMessages,
     turnDeadline,
+    stealSoul,
     sellSoul,
     buyItem,
     activateAbility,
@@ -126,7 +127,7 @@ export default function GameScreen() {
   }
 
   return (
-    <div className="ui-shell flex flex-col h-screen overflow-hidden relative game-shell">
+    <div className="ui-shell flex flex-col h-[100dvh] md:h-screen overflow-y-auto md:overflow-hidden relative game-shell">
       <AnimatePresence>
         {myEncounter && encounterData && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -145,7 +146,7 @@ export default function GameScreen() {
         )}
       </AnimatePresence>
 
-      <header className="grid grid-cols-3 md:grid-cols-6 gap-2 panel p-3">
+      <header className="grid grid-cols-3 md:grid-cols-7 gap-2 panel p-3">
         <div className="stat-pill gap-2 text-cyan-300 font-mono">
           <Clock className="w-4 h-4" /> {countdownSec}s
         </div>
@@ -154,6 +155,9 @@ export default function GameScreen() {
         </div>
         <div className={cn("stat-pill gap-2 font-bold", me.wantedLevel > 50 ? "text-rose-400 animate-pulse" : "text-gray-300")}>
           <Eye className="w-4 h-4" /> {me.wantedLevel}%
+        </div>
+        <div className="stat-pill gap-2 text-amber-200 font-semibold text-xs md:text-sm">
+          🔥 x{me.stealStreak}
         </div>
         <div className="hidden md:flex stat-pill gap-2 text-sky-300 text-sm">
           <User className="w-4 h-4" /> {CLASSES_INFO[me.role as keyof typeof CLASSES_INFO]?.name}
@@ -187,9 +191,9 @@ export default function GameScreen() {
             </button>
           </div>
 
-          <div className="flex-1 panel overflow-hidden relative">
+          <div className="flex-1 panel overflow-hidden relative min-h-[260px] md:min-h-0">
             {tab === "map" && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center p-2 md:p-0">
                 <CityMap />
               </div>
             )}
@@ -236,6 +240,17 @@ export default function GameScreen() {
               </div>
             )}
           </div>
+          {tab === "map" && (
+            <div className="md:hidden panel p-2">
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">Быстрые действия</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("slums")} className="btn btn-ghost h-10 text-xs disabled:opacity-40">Трущобы 10%</button>
+                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("park")} className="btn btn-ghost h-10 text-xs disabled:opacity-40">Парк 25%</button>
+                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("residential")} className="btn btn-secondary h-10 text-xs disabled:opacity-40">Жилой 30%</button>
+                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("business")} className="btn btn-primary h-10 text-xs disabled:opacity-40">Центр 50%</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="hidden md:flex md:col-span-4 flex-col gap-2 min-h-0">
@@ -331,7 +346,7 @@ export default function GameScreen() {
         </div>
 
         {mobilePanel === "players" && (
-          <div className="max-h-42 overflow-y-auto space-y-1 custom-scrollbar">
+          <div className="max-h-52 overflow-y-auto space-y-1 custom-scrollbar">
             {currentRoom.players.map((p) => (
               <div
                 key={p.socketId}
@@ -355,7 +370,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "logs" && (
-          <div className="max-h-42 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
+          <div className="max-h-52 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
             {gameLogs.map((l) => (
               <div key={l.id} className={cn("p-2 rounded border-l-2", l.type === "success" ? "border-emerald-500 bg-emerald-900/20" : l.type === "danger" ? "border-rose-500 bg-rose-900/20" : "border-gray-600 bg-white/5")}>
                 {l.text}
@@ -365,7 +380,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "inventory" && (
-          <div className="max-h-42 overflow-y-auto custom-scrollbar">
+          <div className="max-h-52 overflow-y-auto custom-scrollbar">
             <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
             <div className="flex flex-wrap gap-1">
               {me.inventory.map((s, i) => (
@@ -384,7 +399,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "chat" && (
-          <div className="max-h-42 overflow-y-auto custom-scrollbar">
+          <div className="max-h-52 overflow-y-auto custom-scrollbar">
             <div className="space-y-1 text-[11px] mb-2">
               {chatMessages.map((m, idx) => (
                 <p key={`${m.time}-${idx}`} className="bg-black/30 rounded px-2 py-1">

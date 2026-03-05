@@ -48,6 +48,7 @@ type TestPlayer = {
   socketId: string;
   money: number;
   wantedLevel: number;
+  stealStreak?: number;
   items: string[];
   role: string | null;
 };
@@ -86,7 +87,7 @@ function waitServerReady(process: ChildProcessWithoutNullStreams): Promise<void>
 
     process.stdout.on("data", (chunk) => {
       const line = chunk.toString();
-      if (line.includes("Ready on http://localhost:3000")) {
+      if (line.includes("Ready on http://")) {
         clearTimeout(timer);
         resolve();
       }
@@ -250,6 +251,73 @@ describe("socket multiplayer integration", () => {
         }
       } finally {
         attacker.disconnect();
+      }
+    },
+    TEST_TIMEOUT
+  );
+
+  it(
+    "sanitizes chat messages before broadcasting",
+    async () => {
+      const { host, roomId } = await createJoinedHost();
+      try {
+        host.emit("chat_message", { roomId, text: "   hello   \n   world   " });
+        const chatMessage = await onceEvent<{ nickname: string; text: string }>(host, "chat_update");
+        expect(chatMessage.text).toBe("hello world");
+      } finally {
+        host.disconnect();
+      }
+    },
+    TEST_TIMEOUT
+  );
+
+  it(
+    "wait action reduces wanted and resets steal streak",
+    async () => {
+      const { host, roomId, joined: hostJoined } = await createJoinedHost();
+      const guest = await connectClient();
+      try {
+        const guestJoined = await (async () => {
+          guest.emit("join_room", roomId);
+          return onceEvent<{ playerId: string }>(guest, "joined_room");
+        })();
+
+        host.emit("start_game", roomId);
+        let room = await onceEvent<TestRoom>(host, "room_update");
+        while (room.status !== "playing") {
+          room = await onceEvent<TestRoom>(host, "room_update");
+        }
+
+        const clients = [
+          { id: hostJoined.playerId, socket: host },
+          { id: guestJoined.playerId, socket: guest },
+        ];
+
+        let guard = 0;
+        while (room.players[room.activePlayerIndex]?.socketId !== hostJoined.playerId && guard < 4) {
+          const ownerId = room.players[room.activePlayerIndex]?.socketId;
+          const ownerSocket = clients.find((c) => c.id === ownerId)?.socket;
+          ownerSocket?.emit("action_wait", { roomId });
+          room = await onceEvent<TestRoom>(host, "room_update");
+          guard += 1;
+        }
+
+        expect(room.players[room.activePlayerIndex]?.socketId).toBe(hostJoined.playerId);
+        const before = room.players.find((p) => p.socketId === hostJoined.playerId);
+        expect(before).toBeTruthy();
+        if (!before) return;
+
+        host.emit("action_wait", { roomId });
+        const afterRoom = await onceEvent<TestRoom>(host, "room_update");
+        const after = afterRoom.players.find((p) => p.socketId === hostJoined.playerId);
+        expect(after).toBeTruthy();
+        if (!after) return;
+
+        expect(after.wantedLevel).toBeLessThanOrEqual(before.wantedLevel);
+        expect(after.stealStreak ?? 0).toBe(0);
+      } finally {
+        guest.disconnect();
+        host.disconnect();
       }
     },
     TEST_TIMEOUT

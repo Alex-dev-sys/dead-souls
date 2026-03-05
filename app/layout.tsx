@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import { SocketProvider } from "../context/SocketContext";
 
 export const metadata: Metadata = {
-  title: "Soul Broker Online | Город Душ",
+  title: "Dead Souls Online | Город Душ",
   description: "Многопользовательская стратегия в реальном времени.",
 };
 

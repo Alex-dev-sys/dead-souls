@@ -16,6 +16,7 @@ interface Player {
   role: string;
   money: number;
   wantedLevel: number;
+  stealStreak: number;
   inventory: Soul[];
   items: string[];
   abilityCooldown: number;

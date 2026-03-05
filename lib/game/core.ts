@@ -49,3 +49,12 @@ export function computeStealRisk(params: {
 export function isStealSuccess(roll0to100: number, risk: number): boolean {
   return roll0to100 > risk;
 }
+
+export function isAllowedSocketOrigin(
+  origin: string | undefined | null,
+  staticOrigins: string[]
+): boolean {
+  if (!origin) return true;
+  if (staticOrigins.includes(origin)) return true;
+  return /^https:\/\/dead-souls-[a-z0-9-]+\.vercel\.app$/i.test(origin);
+}

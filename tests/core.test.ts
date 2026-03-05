@@ -3,6 +3,7 @@ import {
   computeStealRisk,
   createReconnectToken,
   getNextActivePlayerIndex,
+  isAllowedSocketOrigin,
   isStealSuccess,
   sanitizeChatText,
   shouldRemoveDisconnected,
@@ -139,5 +140,25 @@ describe("isStealSuccess", () => {
 
   it("returns false when roll is below risk", () => {
     expect(isStealSuccess(10, 40)).toBe(false);
+  });
+});
+
+describe("isAllowedSocketOrigin", () => {
+  const staticOrigins = ["https://vibestudy.ru", "https://dead-souls-omega.vercel.app"];
+
+  it("allows undefined origin", () => {
+    expect(isAllowedSocketOrigin(undefined, staticOrigins)).toBe(true);
+  });
+
+  it("allows explicitly configured origins", () => {
+    expect(isAllowedSocketOrigin("https://vibestudy.ru", staticOrigins)).toBe(true);
+  });
+
+  it("allows vercel preview origins for dead-souls project", () => {
+    expect(isAllowedSocketOrigin("https://dead-souls-c3ot3n2os-alexeys-projects-2260f6f3.vercel.app", staticOrigins)).toBe(true);
+  });
+
+  it("rejects unrelated origins", () => {
+    expect(isAllowedSocketOrigin("https://example.com", staticOrigins)).toBe(false);
   });
 });
