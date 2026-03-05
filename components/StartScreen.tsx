@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useGame, CLASSES } from "@/context/GameContext";
 import { motion } from "framer-motion";
@@ -64,3 +64,4 @@ export default function StartScreen() {
         </div>
     );
 }
+

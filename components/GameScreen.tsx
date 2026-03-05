@@ -8,11 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import CityMap from "./CityMap";
 
 const ITEMS_INFO = [
-  { id: "cloak", name: "РџР»Р°С‰", icon: "рџҐ·", cost: 150, desc: "-20% СЂРёСЃРєР° РєСЂР°Р¶Рё" },
-  { id: "dagger", name: "РќРѕР¶", icon: "рџ”Є", cost: 200, desc: "+15% Рє С†РµРЅРµ РґСѓС€Рё" },
-  { id: "intel_map", name: "РљР°СЂС‚Р°", icon: "рџ—єпёЏ", cost: 140, desc: "-10% СЂРёСЃРєР° РєСЂР°Р¶Рё" },
-  { id: "talisman", name: "РўР°Р»РёСЃРјР°РЅ", icon: "рџ§ї", cost: 180, desc: "+20% С‚СЂРѕС„РµСЏ РїСЂРё СѓСЃРїРµС…Рµ" },
-  { id: "bribe", name: "Р’Р·СЏС‚РєР°", icon: "рџ’°", cost: 100, desc: "-30% СЂРѕР·С‹СЃРєР° РјРіРЅРѕРІРµРЅРЅРѕ" },
+  { id: "cloak", name: "Плащ", icon: "🥷", cost: 150, desc: "-20% риска кражи" },
+  { id: "dagger", name: "Нож", icon: "🔪", cost: 200, desc: "+15% к цене души" },
+  { id: "intel_map", name: "Карта", icon: "🗺️", cost: 140, desc: "-10% риска кражи" },
+  { id: "talisman", name: "Талисман", icon: "🧿", cost: 180, desc: "+20% трофея при успехе" },
+  { id: "bribe", name: "Взятка", icon: "💰", cost: 100, desc: "-30% розыска мгновенно" },
 ];
 
 type EncounterInfo = {
@@ -22,19 +22,19 @@ type EncounterInfo = {
 
 const ENCOUNTERS_INFO: Record<string, EncounterInfo> = {
   cop: {
-    text: "рџ‘® РџРђРўР РЈР›Р¬! Р’Р°СЃ РѕСЃС‚Р°РЅРѕРІРёР»Рё.",
+    text: "👮 ПАТРУЛЬ! Вас остановили.",
     opts: [
-      { id: "run", text: "Р‘РµР¶Р°С‚СЊ (50/50)", color: "bg-red-500" },
-      { id: "bribe", text: "Р’Р·СЏС‚РєР° (50$)", color: "bg-yellow-500" },
-      { id: "talk", text: "Р—Р°РіРѕРІРѕСЂРёС‚СЊ", color: "bg-cyan-600" },
+      { id: "run", text: "Бежать (50/50)", color: "bg-red-500" },
+      { id: "bribe", text: "Взятка (50$)", color: "bg-yellow-500" },
+      { id: "talk", text: "Заговорить", color: "bg-cyan-600" },
     ],
   },
   rival: {
-    text: "рџ•µпёЏ РљРћРќРљРЈР Р•РќРў РїСЂРµРґР»Р°РіР°РµС‚ СЃРґРµР»РєСѓ.",
+    text: "🕵️ КОНКУРЕНТ предлагает сделку.",
     opts: [
-      { id: "accept", text: "РљСѓРїРёС‚СЊ РёРЅС„Сѓ (30$)", color: "bg-blue-500" },
-      { id: "ignore", text: "РРіРЅРѕСЂ", color: "bg-gray-500" },
-      { id: "rob", text: "РћРіСЂР°Р±РёС‚СЊ РµРіРѕ", color: "bg-rose-600" },
+      { id: "accept", text: "Купить инфу (30$)", color: "bg-blue-500" },
+      { id: "ignore", text: "Игнор", color: "bg-gray-500" },
+      { id: "rob", text: "Ограбить его", color: "bg-rose-600" },
     ],
   },
 };
@@ -91,11 +91,11 @@ export default function GameScreen() {
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="panel p-8 text-center space-y-6 max-w-md w-full">
           {currentRoom.winner === me.nickname ? <Trophy className="w-24 h-24 text-yellow-400 mx-auto animate-bounce" /> : <Skull className="w-24 h-24 text-gray-500 mx-auto" />}
           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-500">
-            {currentRoom.winner === me.nickname ? "РўР« РџРћР‘Р•Р”РР›!" : "РР“Р Рђ РћРљРћРќР§Р•РќРђ"}
+            {currentRoom.winner === me.nickname ? "ТЫ ПОБЕДИЛ!" : "ИГРА ОКОНЧЕНА"}
           </h1>
           {currentRoom.winner && (
             <p className="text-xl text-gray-400">
-              РџРѕР±РµРґРёС‚РµР»СЊ: <span className="text-white font-bold">{currentRoom.winner}</span>
+              Победитель: <span className="text-white font-bold">{currentRoom.winner}</span>
             </p>
           )}
 
@@ -107,12 +107,12 @@ export default function GameScreen() {
                   <span className={cn(p.isEliminated && "line-through text-red-500")}>
                     {i + 1}. {p.nickname}
                   </span>
-                  <span className="font-mono text-emerald-400">{p.money} рџ’Ћ</span>
+                  <span className="font-mono text-emerald-400">{p.money} 💎</span>
                 </div>
               ))}
           </div>
           <button onClick={() => location.reload()} className="w-full btn btn-primary">
-            Р’ Р›РћР‘Р‘Р
+            В ЛОББИ
           </button>
         </motion.div>
       </div>
@@ -167,17 +167,17 @@ export default function GameScreen() {
       </header>
 
       <div className={cn("text-center h-11 rounded-lg font-bold text-sm transition-colors flex items-center justify-center", isMyTurn ? "bg-emerald-900/30 text-emerald-300 border border-emerald-500/30" : "bg-black/40 text-gray-500")}>
-        {isMyTurn ? "вљЎ Р’РђРЁ РҐРћР”" : `РҐРѕРґРёС‚ ${activeP?.nickname}...`}
+        {isMyTurn ? "⚡ ВАШ ХОД" : `Ходит ${activeP?.nickname}...`}
       </div>
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 min-h-0 overflow-hidden">
         <div className="md:col-span-8 flex flex-col gap-2 min-h-0">
           <div className="flex gap-2">
             <button onClick={() => setTab("map")} className={cn("btn flex-1", tab === "map" ? "btn-secondary" : "btn-ghost")}>
-              рџ—єпёЏ РљРђР РўРђ Р“РћР РћР”Рђ
+              🗺️ КАРТА ГОРОДА
             </button>
             <button onClick={() => setTab("market")} className={cn("btn flex-1", tab === "market" ? "btn-primary" : "btn-ghost")}>
-              рџ›’ Р§РЃР РќР«Р™ Р Р«РќРћРљ
+              🛒 ЧЁРНЫЙ РЫНОК
             </button>
           </div>
 
@@ -207,7 +207,7 @@ export default function GameScreen() {
                 ))}
 
                 <div className="col-span-full border-t border-white/10 pt-4 mt-2">
-                  <h3 className="text-gray-400 text-sm mb-2 uppercase tracking-widest">РЎРїРѕСЃРѕР±РЅРѕСЃС‚СЊ РєР»Р°СЃСЃР°</h3>
+                  <h3 className="text-gray-400 text-sm mb-2 uppercase tracking-widest">Способность класса</h3>
                   <button
                     onClick={() => isMyTurn && activateAbility()}
                     disabled={!isMyTurn || me.abilityCooldown > 0}
@@ -216,7 +216,7 @@ export default function GameScreen() {
                     <Zap className={cn("w-5 h-5", me.abilityCooldown === 0 ? "text-yellow-400" : "text-gray-500")} />
                     <div className="text-left">
                       <div className="font-bold text-purple-200">{CLASSES_INFO[me.role as keyof typeof CLASSES_INFO]?.name} Ability</div>
-                      <div className="text-xs text-purple-400">{me.abilityCooldown > 0 ? `РџРµСЂРµР·Р°СЂСЏРґРєР° ${me.abilityCooldown} С…РѕРґ.` : "Р“РћРўРћР’Рћ Рљ РРЎРџРћР›Р¬Р—РћР’РђРќРР®"}</div>
+                      <div className="text-xs text-purple-400">{me.abilityCooldown > 0 ? `Перезарядка ${me.abilityCooldown} ход.` : "ГОТОВО К ИСПОЛЬЗОВАНИЮ"}</div>
                     </div>
                   </button>
                   <button
@@ -224,7 +224,7 @@ export default function GameScreen() {
                     disabled={!isMyTurn}
                     className="w-full btn btn-ghost mt-2 text-cyan-200 font-semibold"
                   >
-                    Р—Р°Р»РµС‡СЊ РЅР° РґРЅРѕ (РїР°СЃ С…РѕРґР°)
+                    Залечь на дно (пас хода)
                   </button>
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function GameScreen() {
                     {p.isDisconnected && <span className="text-[10px] px-1 py-0.5 rounded bg-amber-900/40 text-amber-300">off</span>}
                   </span>
                   <div className="flex gap-2 text-gray-400">
-                    <span>рџ‘Ѓ{p.wantedLevel}%</span>
+                    <span>👁{p.wantedLevel}%</span>
                     <span className="text-emerald-500">{p.money}$</span>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export default function GameScreen() {
                   <span className="text-cyan-300">{m.nickname}:</span> <span className="text-gray-200">{m.text}</span>
                 </p>
               ))}
-              {chatMessages.length === 0 && <p className="text-gray-600">Р§Р°С‚ РїРѕРєР° РїСѓСЃС‚.</p>}
+              {chatMessages.length === 0 && <p className="text-gray-600">Чат пока пуст.</p>}
             </div>
             <div className="mt-2 flex gap-2">
               <input
@@ -280,7 +280,7 @@ export default function GameScreen() {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSendChat()}
                 maxLength={100}
-                placeholder="РќР°РїРёСЃР°С‚СЊ РІ С‡Р°С‚..."
+                placeholder="Написать в чат..."
                 className="flex-1 ui-input h-8 text-xs"
               />
               <button onClick={onSendChat} disabled={!canSendChat} className="btn btn-primary h-8 px-3 py-0 disabled:opacity-40">
@@ -290,7 +290,7 @@ export default function GameScreen() {
           </div>
 
           <div className="h-[16%] panel p-2 overflow-y-auto">
-            <h4 className="text-[10px] uppercase text-gray-500 mb-1">Р”СѓС€Рё ({me.inventory.length})</h4>
+            <h4 className="text-[10px] uppercase text-gray-500 mb-1">Души ({me.inventory.length})</h4>
             <div className="flex flex-wrap gap-1">
               {me.inventory.map((s, i) => (
                 <button
@@ -302,7 +302,7 @@ export default function GameScreen() {
                   {s.name} ({s.value}$)
                 </button>
               ))}
-              {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">РџСѓСЃС‚Рѕ</span>}
+              {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">Пусто</span>}
             </div>
           </div>
         </div>
@@ -311,16 +311,16 @@ export default function GameScreen() {
       <section className="md:hidden panel p-2 space-y-2 mobile-panel">
         <div className="grid grid-cols-4 gap-2">
           <button onClick={() => setMobilePanel("players")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "players" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            РРіСЂРѕРєРё
+            Игроки
           </button>
           <button onClick={() => setMobilePanel("logs")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "logs" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Р›РѕРіРё
+            Логи
           </button>
           <button onClick={() => setMobilePanel("inventory")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "inventory" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            РРЅРІРµРЅС‚Р°СЂСЊ
+            Инвентарь
           </button>
           <button onClick={() => setMobilePanel("chat")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "chat" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Р§Р°С‚
+            Чат
           </button>
         </div>
 
@@ -340,7 +340,7 @@ export default function GameScreen() {
                   {p.isDisconnected && <span className="text-[10px] px-1 py-0.5 rounded bg-amber-900/40 text-amber-300">off</span>}
                 </span>
                 <div className="flex gap-2 text-gray-400">
-                  <span>рџ‘Ѓ{p.wantedLevel}%</span>
+                  <span>👁{p.wantedLevel}%</span>
                   <span className="text-emerald-500">{p.money}$</span>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function GameScreen() {
 
         {mobilePanel === "inventory" && (
           <div className="max-h-42 overflow-y-auto custom-scrollbar">
-            <h4 className="text-[10px] uppercase text-gray-500 mb-2">Р”СѓС€Рё ({me.inventory.length})</h4>
+            <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
             <div className="flex flex-wrap gap-1">
               {me.inventory.map((s, i) => (
                 <button
@@ -372,7 +372,7 @@ export default function GameScreen() {
                   {s.name} ({s.value}$)
                 </button>
               ))}
-              {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">РџСѓСЃС‚Рѕ</span>}
+              {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">Пусто</span>}
             </div>
           </div>
         )}
@@ -385,7 +385,7 @@ export default function GameScreen() {
                   <span className="text-cyan-300">{m.nickname}:</span> <span className="text-gray-200">{m.text}</span>
                 </p>
               ))}
-              {chatMessages.length === 0 && <p className="text-gray-600">Р§Р°С‚ РїРѕРєР° РїСѓСЃС‚.</p>}
+              {chatMessages.length === 0 && <p className="text-gray-600">Чат пока пуст.</p>}
             </div>
             <div className="flex gap-2">
               <input
@@ -393,7 +393,7 @@ export default function GameScreen() {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSendChat()}
                 maxLength={100}
-                placeholder="РЎРѕРѕР±С‰РµРЅРёРµ..."
+                placeholder="Сообщение..."
                 className="flex-1 ui-input h-8 text-xs"
               />
               <button onClick={onSendChat} disabled={!canSendChat} className="btn btn-primary h-8 px-3 py-0 disabled:opacity-40">
@@ -408,4 +408,5 @@ export default function GameScreen() {
     </div>
   );
 }
+
 

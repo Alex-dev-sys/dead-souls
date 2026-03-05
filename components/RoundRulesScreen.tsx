@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { BookOpenText, ShieldAlert, Coins, Eye, Handshake } from "lucide-react";
@@ -82,4 +82,3 @@ export default function RoundRulesScreen({ onContinue }: Props) {
     </section>
   );
 }
-

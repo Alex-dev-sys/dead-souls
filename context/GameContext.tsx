@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { ClassInfo, District, GameEvent, GameState, LogEntry, PlayerClass, Soul } from "../types/game";
@@ -232,3 +232,4 @@ export function useGame() {
   }
   return context;
 }
+

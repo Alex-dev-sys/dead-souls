@@ -1,4 +1,4 @@
-# Soul Broker Online
+﻿# Soul Broker Online
 
 Мультиплеерная браузерная игра на `Next.js + Socket.IO`.
 
@@ -48,3 +48,4 @@ npm run build
 - `context/SocketContext.tsx` — клиентская транспортная логика.
 - `lib/game/core.ts` — чистые функции core-логики.
 - `tests/core.test.ts` — unit-тесты core-модуля.
+

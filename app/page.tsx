@@ -12,7 +12,7 @@ export default function Home() {
   const [acceptedRules, setAcceptedRules] = useState<Record<string, boolean>>({});
 
   const showGame = currentRoom && currentRoom.status !== 'lobby';
-  const isFirstRound = currentRoom?.status === "playing" && currentRoom.turn === 0;
+  const isFirstRound = currentRoom?.status === "playing" && currentRoom.turn === 1;
   const rulesKey = useMemo(() => (currentRoom?.id ? `sb_rules_seen_${currentRoom.id}` : null), [currentRoom?.id]);
   const showRoundRules = useMemo(() => {
     if (!rulesKey || !isFirstRound || typeof window === "undefined") return false;

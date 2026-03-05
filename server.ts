@@ -233,6 +233,7 @@ function removePlayerFromRoom(io: Server, roomId: string, socketId: string) {
     if (!room) return;
     const idx = room.players.findIndex((p) => p.socketId === socketId);
     if (idx < 0) return;
+    const wasActivePlayer = idx === room.activePlayerIndex;
     const [removed] = room.players.splice(idx, 1);
     clearReconnectTimer(removed.reconnectToken);
 
@@ -254,7 +255,9 @@ function removePlayerFromRoom(io: Server, roomId: string, socketId: string) {
             room.status = "ended";
             room.winner = alive[0]?.nickname || null;
             if (room.turnTimer) clearTimeout(room.turnTimer);
-        } else if (idx === room.activePlayerIndex) {
+        } else if (wasActivePlayer) {
+            // Make the next player active without applying removed player's end-turn effects.
+            room.activePlayerIndex -= 1;
             advanceTurn(io, roomId);
             return;
         }
@@ -630,13 +633,15 @@ app.prepare().then(() => {
 
         socket.on("action_ability", ({ roomId }: ActionPayload) => {
             const room = rooms[roomId];
-            if (!room) return;
+            if (!room || room.status !== "playing") return;
             const player = room.players[room.activePlayerIndex];
-            if (player.socketId !== socket.id) return;
+            if (!player || player.socketId !== socket.id || player.isEliminated) return;
+            if (room.activeEncounter) return;
+            if (!player.role) return socket.emit("error_msg", "Роль не назначена");
 
             if (player.abilityCooldown > 0) return socket.emit("error_msg", "Способность на перезарядке");
 
-            const cls = CLASSES[player.role!];
+            const cls = CLASSES[player.role];
             const ab = cls.ability;
 
             player.abilityCooldown = ab.cooldown + 1; // +1 because it decrements end of turn

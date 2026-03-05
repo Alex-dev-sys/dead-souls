@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+﻿import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import { io, Socket } from "socket.io-client";
 
@@ -255,3 +255,4 @@ describe("socket multiplayer integration", () => {
     TEST_TIMEOUT
   );
 });
+

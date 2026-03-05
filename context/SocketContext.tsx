@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -65,9 +65,9 @@ interface SessionData {
 
 export const CLASSES_INFO = {
   careerist: { name: "Карьерист", ability: "Инсайд (x2 цена)" },
-  idealist: { name: "Идеалист", ability: "Проповедь (Снять розыск)" },
+  idealist: { name: "Идеалист", ability: "Проповедь (снять розыск)" },
   quiet: { name: "Тихий", ability: "Тень (0% риск)" },
-  cynic: { name: "Циник", ability: "Донос (+Розыск врагу)" },
+  cynic: { name: "Циник", ability: "Донос (+розыск врагу)" },
 };
 
 interface SocketContextType {

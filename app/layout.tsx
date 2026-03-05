@@ -15,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body className="antialiased min-h-screen flex flex-col" suppressHydrationWarning>
-        <SocketProvider>
-          {children}
-        </SocketProvider>
+        <SocketProvider>{children}</SocketProvider>
       </body>
     </html>
   );

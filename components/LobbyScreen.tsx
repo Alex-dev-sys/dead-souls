@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSocket } from "@/context/SocketContext";
 import { useState } from "react";
@@ -139,7 +139,13 @@ export default function LobbyScreen() {
         </div>
 
         <div className="mt-5 flex justify-center">
-          <button onClick={() => { localStorage.removeItem("sb_session"); location.reload(); }} className="btn btn-ghost px-4 text-xs uppercase tracking-wide">
+          <button
+            onClick={() => {
+              localStorage.removeItem("sb_session");
+              location.reload();
+            }}
+            className="btn btn-ghost px-4 text-xs uppercase tracking-wide"
+          >
             Сброс сессии
           </button>
         </div>
@@ -147,4 +153,3 @@ export default function LobbyScreen() {
     </section>
   );
 }
-
