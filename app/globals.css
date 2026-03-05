@@ -253,4 +253,9 @@ body::before {
   .panel {
     border-radius: 12px;
   }
+
+  .ui-input {
+    height: 42px;
+    font-size: 16px;
+  }
 }
