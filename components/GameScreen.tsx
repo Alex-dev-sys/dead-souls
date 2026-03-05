@@ -3,7 +3,7 @@
 import { useSocket, CLASSES_INFO } from "@/context/SocketContext";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Coins, Eye, Trophy, Skull, Clock, Zap, AlertTriangle, User, SendHorizonal } from "lucide-react";
+import { Coins, Eye, Trophy, Skull, Clock, Zap, AlertTriangle, User, SendHorizonal, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CityMap from "./CityMap";
 
@@ -46,7 +46,6 @@ export default function GameScreen() {
     gameLogs,
     chatMessages,
     turnDeadline,
-    stealSoul,
     sellSoul,
     buyItem,
     activateAbility,
@@ -58,6 +57,7 @@ export default function GameScreen() {
 
   const [tab, setTab] = useState<"map" | "market">("map");
   const [mobilePanel, setMobilePanel] = useState<"players" | "logs" | "inventory" | "chat">("players");
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [nowTs, setNowTs] = useState(() => Date.now());
   const [chatInput, setChatInput] = useState("");
 
@@ -180,7 +180,7 @@ export default function GameScreen() {
         {isMyTurn ? "⚡ ВАШ ХОД" : `Ходит ${activeP?.nickname}...`}
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 min-h-0 md:overflow-hidden overflow-visible">
         <div className="md:col-span-8 flex flex-col gap-2 min-h-0">
           <div className="flex gap-2">
             <button onClick={() => setTab("map")} className={cn("btn flex-1", tab === "map" ? "btn-secondary" : "btn-ghost")}>
@@ -191,7 +191,7 @@ export default function GameScreen() {
             </button>
           </div>
 
-          <div className="flex-1 panel overflow-hidden relative min-h-[260px] md:min-h-0">
+          <div className="flex-1 panel overflow-hidden relative min-h-[340px] md:min-h-0">
             <div className="absolute top-2 left-3 z-10 text-[10px] uppercase tracking-[0.18em] text-slate-400">
               {tab === "map" ? "Оперативная карта" : "Торговый модуль"}
             </div>
@@ -243,17 +243,6 @@ export default function GameScreen() {
               </div>
             )}
           </div>
-          {tab === "map" && (
-            <div className="md:hidden panel p-2">
-              <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">Быстрые действия</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("slums")} className="btn btn-ghost h-10 text-xs disabled:opacity-40">Трущобы 10%</button>
-                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("park")} className="btn btn-ghost h-10 text-xs disabled:opacity-40">Парк 25%</button>
-                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("residential")} className="btn btn-secondary h-10 text-xs disabled:opacity-40">Жилой 30%</button>
-                <button disabled={!isMyTurn} onClick={() => isMyTurn && stealSoul("business")} className="btn btn-primary h-10 text-xs disabled:opacity-40">Центр 50%</button>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="hidden md:flex md:col-span-4 flex-col gap-2 min-h-0">
@@ -335,24 +324,31 @@ export default function GameScreen() {
         </div>
       </div>
 
-      <section className="md:hidden panel p-2 space-y-2 mobile-panel">
-        <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => setMobilePanel("players")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "players" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Игроки
-          </button>
-          <button onClick={() => setMobilePanel("logs")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "logs" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Логи
-          </button>
-          <button onClick={() => setMobilePanel("inventory")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "inventory" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Инвентарь
-          </button>
-          <button onClick={() => setMobilePanel("chat")} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "chat" ? "btn-primary" : "btn-ghost text-gray-300")}>
-            Чат
+      <section className="md:hidden panel p-2 space-y-2 mobile-panel sticky bottom-0 z-20">
+        <div className="flex items-center justify-between gap-2">
+          <div className="grid grid-cols-4 gap-2 flex-1">
+            <button onClick={() => { setMobilePanel("players"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "players" ? "btn-primary" : "btn-ghost text-gray-300")}>
+              Игроки
+            </button>
+            <button onClick={() => { setMobilePanel("logs"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "logs" ? "btn-primary" : "btn-ghost text-gray-300")}>
+              Логи
+            </button>
+            <button onClick={() => { setMobilePanel("inventory"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "inventory" ? "btn-primary" : "btn-ghost text-gray-300")}>
+              Инвентарь
+            </button>
+            <button onClick={() => { setMobilePanel("chat"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "chat" ? "btn-primary" : "btn-ghost text-gray-300")}>
+              Чат
+            </button>
+          </div>
+          <button onClick={() => setMobilePanelOpen((v) => !v)} className="btn btn-ghost h-10 w-10 p-0 shrink-0" aria-label={mobilePanelOpen ? "Свернуть панель" : "Развернуть панель"}>
+            {mobilePanelOpen ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
           </button>
         </div>
 
+        {mobilePanelOpen && (
+          <>
         {mobilePanel === "players" && (
-          <div className="max-h-52 overflow-y-auto space-y-1 custom-scrollbar">
+          <div className="max-h-44 overflow-y-auto space-y-1 custom-scrollbar">
             {currentRoom.players.map((p) => (
               <div
                 key={p.socketId}
@@ -376,7 +372,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "logs" && (
-          <div className="max-h-52 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
+          <div className="max-h-44 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
             {gameLogs.map((l) => (
               <div key={l.id} className={cn("p-2 rounded border-l-2", l.type === "success" ? "border-emerald-500 bg-emerald-900/20" : l.type === "danger" ? "border-rose-500 bg-rose-900/20" : "border-gray-600 bg-white/5")}>
                 {l.text}
@@ -386,7 +382,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "inventory" && (
-          <div className="max-h-52 overflow-y-auto custom-scrollbar">
+          <div className="max-h-44 overflow-y-auto custom-scrollbar">
             <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
             <div className="flex flex-wrap gap-1">
               {me.inventory.map((s, i) => (
@@ -405,7 +401,7 @@ export default function GameScreen() {
         )}
 
         {mobilePanel === "chat" && (
-          <div className="max-h-52 overflow-y-auto custom-scrollbar">
+          <div className="max-h-44 overflow-y-auto custom-scrollbar">
             <div className="space-y-1 text-[11px] mb-2">
               {chatMessages.map((m, idx) => (
                 <p key={`${m.time}-${idx}`} className="bg-black/30 rounded px-2 py-1">
@@ -428,6 +424,8 @@ export default function GameScreen() {
               </button>
             </div>
           </div>
+        )}
+          </>
         )}
       </section>
 
