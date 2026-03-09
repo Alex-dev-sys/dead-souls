@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
   --color-background: var(--background);
@@ -93,10 +93,9 @@ body {
 }
 
 .mobile-panel {
-  min-height: 60px;
+  min-height: 0;
 }
 
-/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -114,7 +113,6 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Background particles */
 body::before {
   content: '';
   position: fixed;
@@ -139,7 +137,6 @@ body::before {
   }
 }
 
-/* Selection color */
 ::selection {
   background: rgba(226, 167, 42, 0.35);
 }
@@ -236,6 +233,11 @@ body::before {
 }
 
 @media (max-width: 768px) {
+  .stat-pill {
+    height: 34px;
+    padding: 0 0.55rem;
+  }
+
   body {
     overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
@@ -247,7 +249,8 @@ body::before {
   }
 
   .btn {
-    min-height: 44px;
+    min-height: 42px;
+    font-size: 0.82rem;
   }
 
   .panel {

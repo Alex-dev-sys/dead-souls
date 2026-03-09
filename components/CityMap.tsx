@@ -60,9 +60,9 @@ export default function CityMap() {
     : false;
 
   return (
-    <div className="w-full h-full p-3 md:p-5">
-      <div className="h-full rounded-2xl border border-slate-600/35 bg-[radial-gradient(circle_at_20%_20%,rgba(52,132,198,.22),transparent_40%),radial-gradient(circle_at_80%_10%,rgba(255,196,84,.16),transparent_35%),linear-gradient(180deg,rgba(10,20,31,.95),rgba(7,14,23,.95))] p-3 md:p-4">
-        <div className="flex items-center justify-between mb-3">
+    <div className="w-full h-full p-2 md:p-5">
+      <div className="h-full rounded-2xl border border-slate-600/35 bg-[radial-gradient(circle_at_20%_20%,rgba(52,132,198,.22),transparent_40%),radial-gradient(circle_at_80%_10%,rgba(255,196,84,.16),transparent_35%),linear-gradient(180deg,rgba(10,20,31,.95),rgba(7,14,23,.95))] p-2.5 md:p-4">
+        <div className="flex items-center justify-between mb-2">
           <p className="text-[10px] md:text-xs uppercase tracking-[0.22em] text-slate-400">Городские районы</p>
           <span
             className={cn(
@@ -74,7 +74,7 @@ export default function CityMap() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 md:gap-3 h-[calc(100%-28px)]">
+        <div className="grid grid-cols-2 gap-2 h-[calc(100%-24px)]">
           {DISTRICTS.map((district) => (
             <button
               key={district.id}
@@ -91,7 +91,7 @@ export default function CityMap() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-base md:text-2xl leading-none">{district.emoji}</p>
-                  <h3 className="mt-1 text-xs md:text-base font-extrabold text-slate-100">{district.name}</h3>
+                  <h3 className="mt-1 text-[11px] md:text-base font-extrabold leading-tight text-slate-100">{district.name}</h3>
                 </div>
                 <span
                   className={cn(
@@ -107,12 +107,12 @@ export default function CityMap() {
                 </span>
               </div>
 
-              <div className="mt-2 md:mt-3">
+              <div className="mt-1.5 md:mt-3">
                 <p className="text-[10px] md:text-xs text-slate-300/90">Награда</p>
-                <p className="text-sm md:text-xl font-black tracking-wide text-amber-200">{district.reward}$</p>
+                <p className="text-base md:text-xl font-black tracking-wide text-amber-200">{district.reward}$</p>
               </div>
 
-              <p className="mt-2 text-[10px] md:text-xs text-slate-400">{district.hint}</p>
+              <p className="mt-1.5 text-[10px] md:text-xs leading-tight text-slate-400">{district.hint}</p>
             </button>
           ))}
         </div>
@@ -120,3 +120,4 @@ export default function CityMap() {
     </div>
   );
 }
+

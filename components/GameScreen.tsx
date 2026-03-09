@@ -127,7 +127,7 @@ export default function GameScreen() {
   }
 
   return (
-    <div className="ui-shell flex flex-col h-[100dvh] md:h-screen overflow-y-auto md:overflow-hidden relative game-shell">
+    <div className="ui-shell flex flex-col h-[100dvh] md:h-screen overflow-y-auto md:overflow-hidden relative game-shell pb-24 md:pb-0">
       <AnimatePresence>
         {myEncounter && encounterData && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -146,14 +146,14 @@ export default function GameScreen() {
         )}
       </AnimatePresence>
 
-      <header className="grid grid-cols-2 md:grid-cols-7 gap-2 panel p-3 md:p-4">
-        <div className="stat-pill gap-2 text-cyan-300 font-mono">
+      <header className="grid grid-cols-2 md:grid-cols-7 gap-2 panel p-2 md:p-4">
+        <div className="stat-pill gap-2 text-cyan-300 font-mono text-sm">
           <Clock className="w-4 h-4" /> {countdownSec}s
         </div>
-        <div className="stat-pill gap-2 text-emerald-300 font-bold">
+        <div className="stat-pill gap-2 text-emerald-300 font-bold text-sm">
           <Coins className="w-4 h-4" /> {me.money}
         </div>
-        <div className={cn("stat-pill gap-2 font-bold", me.wantedLevel > 50 ? "text-rose-400 animate-pulse" : "text-gray-300")}>
+        <div className={cn("stat-pill gap-2 font-bold text-sm", me.wantedLevel > 50 ? "text-rose-400 animate-pulse" : "text-gray-300")}>
           <Eye className="w-4 h-4" /> {me.wantedLevel}%
         </div>
         <div className="stat-pill gap-2 text-amber-200 font-semibold text-xs md:text-sm">
@@ -176,27 +176,27 @@ export default function GameScreen() {
         </div>
       </header>
 
-      <div className={cn("text-center h-11 rounded-xl font-bold text-sm transition-colors flex items-center justify-center border", isMyTurn ? "bg-emerald-900/30 text-emerald-300 border-emerald-500/35 shadow-[0_0_18px_rgba(30,180,140,0.18)]" : "bg-black/40 text-gray-500 border-slate-700/40")}>
+      <div className={cn("text-center h-10 md:h-11 rounded-xl font-bold text-sm transition-colors flex items-center justify-center border", isMyTurn ? "bg-emerald-900/30 text-emerald-300 border-emerald-500/35 shadow-[0_0_18px_rgba(30,180,140,0.18)]" : "bg-black/40 text-gray-500 border-slate-700/40")}>
         {isMyTurn ? "⚡ ВАШ ХОД" : `Ходит ${activeP?.nickname}...`}
       </div>
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 min-h-0 md:overflow-hidden overflow-visible">
         <div className="md:col-span-8 flex flex-col gap-2 min-h-0">
           <div className="flex gap-2">
-            <button onClick={() => setTab("map")} className={cn("btn flex-1", tab === "map" ? "btn-secondary" : "btn-ghost")}>
+            <button onClick={() => setTab("map")} className={cn("btn flex-1 text-sm", tab === "map" ? "btn-secondary" : "btn-ghost")}>
               🗺️ КАРТА ГОРОДА
             </button>
-            <button onClick={() => setTab("market")} className={cn("btn flex-1", tab === "market" ? "btn-primary" : "btn-ghost")}>
+            <button onClick={() => setTab("market")} className={cn("btn flex-1 text-sm", tab === "market" ? "btn-primary" : "btn-ghost")}>
               🛒 ЧЁРНЫЙ РЫНОК
             </button>
           </div>
 
-          <div className="flex-1 panel overflow-hidden relative min-h-[340px] md:min-h-0">
-            <div className="absolute top-2 left-3 z-10 text-[10px] uppercase tracking-[0.18em] text-slate-400">
+          <div className="flex-1 panel overflow-hidden relative min-h-[430px] md:min-h-0">
+            <div className="absolute top-2 left-3 z-10 text-[9px] uppercase tracking-[0.18em] text-slate-400">
               {tab === "map" ? "Оперативная карта" : "Торговый модуль"}
             </div>
             {tab === "map" && (
-              <div className="absolute inset-0 flex items-center justify-center p-2 md:p-0">
+              <div className="absolute inset-0 flex items-center justify-center p-1.5 md:p-0">
                 <CityMap />
               </div>
             )}
@@ -324,107 +324,107 @@ export default function GameScreen() {
         </div>
       </div>
 
-      <section className="md:hidden panel p-2 space-y-2 mobile-panel sticky bottom-0 z-20">
+      <section className="md:hidden fixed left-2 right-2 bottom-[calc(env(safe-area-inset-bottom)+6px)] z-30 rounded-2xl border border-slate-600/40 bg-[linear-gradient(180deg,rgba(10,18,29,.96),rgba(7,13,22,.98))] shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="grid grid-cols-4 gap-2 flex-1">
-            <button onClick={() => { setMobilePanel("players"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "players" ? "btn-primary" : "btn-ghost text-gray-300")}>
+            <button onClick={() => { setMobilePanel("players"); setMobilePanelOpen(true); }} className={cn("btn h-11 rounded-xl text-xs font-semibold", mobilePanel === "players" ? "btn-primary" : "btn-ghost text-gray-300")}>
               Игроки
             </button>
-            <button onClick={() => { setMobilePanel("logs"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "logs" ? "btn-primary" : "btn-ghost text-gray-300")}>
+            <button onClick={() => { setMobilePanel("logs"); setMobilePanelOpen(true); }} className={cn("btn h-11 rounded-xl text-xs font-semibold", mobilePanel === "logs" ? "btn-primary" : "btn-ghost text-gray-300")}>
               Логи
             </button>
-            <button onClick={() => { setMobilePanel("inventory"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "inventory" ? "btn-primary" : "btn-ghost text-gray-300")}>
+            <button onClick={() => { setMobilePanel("inventory"); setMobilePanelOpen(true); }} className={cn("btn h-11 rounded-xl text-xs font-semibold", mobilePanel === "inventory" ? "btn-primary" : "btn-ghost text-gray-300")}>
               Инвентарь
             </button>
-            <button onClick={() => { setMobilePanel("chat"); setMobilePanelOpen(true); }} className={cn("btn h-10 rounded-lg text-xs font-semibold", mobilePanel === "chat" ? "btn-primary" : "btn-ghost text-gray-300")}>
+            <button onClick={() => { setMobilePanel("chat"); setMobilePanelOpen(true); }} className={cn("btn h-11 rounded-xl text-xs font-semibold", mobilePanel === "chat" ? "btn-primary" : "btn-ghost text-gray-300")}>
               Чат
             </button>
           </div>
-          <button onClick={() => setMobilePanelOpen((v) => !v)} className="btn btn-ghost h-10 w-10 p-0 shrink-0" aria-label={mobilePanelOpen ? "Свернуть панель" : "Развернуть панель"}>
+          <button onClick={() => setMobilePanelOpen((v) => !v)} className="btn btn-ghost h-11 w-11 rounded-xl p-0 shrink-0" aria-label={mobilePanelOpen ? "Свернуть панель" : "Развернуть панель"}>
             {mobilePanelOpen ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
           </button>
         </div>
 
         {mobilePanelOpen && (
           <>
-        {mobilePanel === "players" && (
-          <div className="max-h-44 overflow-y-auto space-y-1 custom-scrollbar">
-            {currentRoom.players.map((p) => (
-              <div
-                key={p.socketId}
-                className={cn(
-                  "flex justify-between items-center text-xs p-2 rounded",
-                  p.socketId === currentRoom.players[currentRoom.activePlayerIndex]?.socketId ? "bg-white/10" : "bg-black/20",
-                  p.isEliminated && "opacity-40 italic"
-                )}
-              >
-                <span className={cn("flex items-center gap-1", p.socketId === playerId && "text-primary")}>
-                  {p.nickname}
-                  {p.isDisconnected && <span className="text-[10px] px-1 py-0.5 rounded bg-amber-900/40 text-amber-300">off</span>}
-                </span>
-                <div className="flex gap-2 text-gray-400">
-                  <span>👁{p.wantedLevel}%</span>
-                  <span className="text-emerald-500">{p.money}$</span>
+            {mobilePanel === "players" && (
+              <div className="mt-2 max-h-[28vh] overflow-y-auto space-y-1 custom-scrollbar">
+                {currentRoom.players.map((p) => (
+                  <div
+                    key={p.socketId}
+                    className={cn(
+                      "flex justify-between items-center text-xs p-2 rounded",
+                      p.socketId === currentRoom.players[currentRoom.activePlayerIndex]?.socketId ? "bg-white/10" : "bg-black/20",
+                      p.isEliminated && "opacity-40 italic"
+                    )}
+                  >
+                    <span className={cn("flex items-center gap-1", p.socketId === playerId && "text-primary")}>
+                      {p.nickname}
+                      {p.isDisconnected && <span className="text-[10px] px-1 py-0.5 rounded bg-amber-900/40 text-amber-300">off</span>}
+                    </span>
+                    <div className="flex gap-2 text-gray-400">
+                      <span>👁{p.wantedLevel}%</span>
+                      <span className="text-emerald-500">{p.money}$</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {mobilePanel === "logs" && (
+              <div className="mt-2 max-h-[28vh] overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
+                {gameLogs.map((l) => (
+                  <div key={l.id} className={cn("p-2 rounded border-l-2", l.type === "success" ? "border-emerald-500 bg-emerald-900/20" : l.type === "danger" ? "border-rose-500 bg-rose-900/20" : "border-gray-600 bg-white/5")}>
+                    {l.text}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {mobilePanel === "inventory" && (
+              <div className="mt-2 max-h-[28vh] overflow-y-auto custom-scrollbar">
+                <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
+                <div className="flex flex-wrap gap-1">
+                  {me.inventory.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => isMyTurn && sellSoul(i)}
+                      disabled={!isMyTurn}
+                      className="bg-purple-900/40 border border-purple-500/20 text-purple-200 px-2 py-1 rounded text-[10px] hover:bg-purple-900/60 truncate max-w-full"
+                    >
+                      {s.name} ({s.value}$)
+                    </button>
+                  ))}
+                  {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">Пусто</span>}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {mobilePanel === "logs" && (
-          <div className="max-h-44 overflow-y-auto flex flex-col-reverse custom-scrollbar text-xs space-y-reverse space-y-1">
-            {gameLogs.map((l) => (
-              <div key={l.id} className={cn("p-2 rounded border-l-2", l.type === "success" ? "border-emerald-500 bg-emerald-900/20" : l.type === "danger" ? "border-rose-500 bg-rose-900/20" : "border-gray-600 bg-white/5")}>
-                {l.text}
+            {mobilePanel === "chat" && (
+              <div className="mt-2 max-h-[28vh] overflow-y-auto custom-scrollbar">
+                <div className="space-y-1 text-[11px] mb-2">
+                  {chatMessages.map((m, idx) => (
+                    <p key={`${m.time}-${idx}`} className="bg-black/30 rounded px-2 py-1">
+                      <span className="text-cyan-300">{m.nickname}:</span> <span className="text-gray-200">{m.text}</span>
+                    </p>
+                  ))}
+                  {chatMessages.length === 0 && <p className="text-gray-600">Чат пока пуст.</p>}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && onSendChat()}
+                    maxLength={100}
+                    placeholder="Сообщение..."
+                    className="flex-1 ui-input h-8 text-xs"
+                  />
+                  <button onClick={onSendChat} disabled={!canSendChat} className="btn btn-primary h-8 px-3 py-0 disabled:opacity-40">
+                    <SendHorizonal size={14} />
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        {mobilePanel === "inventory" && (
-          <div className="max-h-44 overflow-y-auto custom-scrollbar">
-            <h4 className="text-[10px] uppercase text-gray-500 mb-2">Души ({me.inventory.length})</h4>
-            <div className="flex flex-wrap gap-1">
-              {me.inventory.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => isMyTurn && sellSoul(i)}
-                  disabled={!isMyTurn}
-                  className="bg-purple-900/40 border border-purple-500/20 text-purple-200 px-2 py-1 rounded text-[10px] hover:bg-purple-900/60 truncate max-w-full"
-                >
-                  {s.name} ({s.value}$)
-                </button>
-              ))}
-              {me.inventory.length === 0 && <span className="text-gray-600 text-[10px]">Пусто</span>}
-            </div>
-          </div>
-        )}
-
-        {mobilePanel === "chat" && (
-          <div className="max-h-44 overflow-y-auto custom-scrollbar">
-            <div className="space-y-1 text-[11px] mb-2">
-              {chatMessages.map((m, idx) => (
-                <p key={`${m.time}-${idx}`} className="bg-black/30 rounded px-2 py-1">
-                  <span className="text-cyan-300">{m.nickname}:</span> <span className="text-gray-200">{m.text}</span>
-                </p>
-              ))}
-              {chatMessages.length === 0 && <p className="text-gray-600">Чат пока пуст.</p>}
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && onSendChat()}
-                maxLength={100}
-                placeholder="Сообщение..."
-                className="flex-1 ui-input h-8 text-xs"
-              />
-              <button onClick={onSendChat} disabled={!canSendChat} className="btn btn-primary h-8 px-3 py-0 disabled:opacity-40">
-                <SendHorizonal size={14} />
-              </button>
-            </div>
-          </div>
-        )}
+            )}
           </>
         )}
       </section>
@@ -433,5 +433,3 @@ export default function GameScreen() {
     </div>
   );
 }
-
-
