@@ -78,6 +78,7 @@ export default function GameScreen() {
 
   const myEncounter = currentRoom.activeEncounter?.playerId === playerId ? currentRoom.activeEncounter : null;
   const encounterData = myEncounter ? ENCOUNTERS_INFO[myEncounter.encounterId] : null;
+  const marketItems = ITEMS_INFO.filter((item) => currentRoom.rotatingMarket?.includes(item.id));
 
   const onSendChat = () => {
     const text = chatInput.trim();
@@ -202,12 +203,12 @@ export default function GameScreen() {
             )}
 
             {tab === "market" && (
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto h-full">
-                {ITEMS_INFO.map((item) => (
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto h-full auto-rows-fr">
+                {marketItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => isMyTurn && buyItem(item.id)}
-                    disabled={!isMyTurn || me.money < item.cost}
+                    disabled={!isMyTurn || me.money < item.cost || !currentRoom.rotatingMarket.includes(item.id)}
                     className="panel min-h-[176px] p-4 flex flex-col items-center gap-2 hover:border-amber-500/50 disabled:opacity-50 disabled:hover:border-white/10 transition-colors"
                   >
                     <span className="text-4xl">{item.icon}</span>
@@ -219,7 +220,17 @@ export default function GameScreen() {
                   </button>
                 ))}
 
+                {marketItems.length === 0 && (
+                  <div className="col-span-full rounded-xl border border-dashed border-white/10 bg-black/20 p-4 text-sm text-slate-400">
+                    Market is empty. New offers arrive next round.
+                  </div>
+                )}
+
                 <div className="col-span-full border-t border-white/10 pt-4 mt-2">
+                  <div className="mb-3 flex items-center justify-between gap-3 text-[11px] text-slate-400">
+                    <span>Live lots: {currentRoom.rotatingMarket.length}</span>
+                    <span>Buying ends your turn and can close a contract.</span>
+                  </div>
                   <h3 className="text-gray-400 text-sm mb-2 uppercase tracking-widest">Способность класса</h3>
                   <button
                     onClick={() => isMyTurn && activateAbility()}

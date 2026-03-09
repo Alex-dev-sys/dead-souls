@@ -44,6 +44,13 @@ function connectClient(): Promise<Socket> {
   });
 }
 
+type TestContract = {
+  id: string;
+  progress: number;
+  goal: number;
+  completed: boolean;
+};
+
 type TestPlayer = {
   socketId: string;
   money: number;
@@ -51,12 +58,15 @@ type TestPlayer = {
   stealStreak?: number;
   items: string[];
   role: string | null;
+  contracts: TestContract[];
 };
 
 type TestRoom = {
   status: "lobby" | "playing" | "ended";
   turn: number;
   activePlayerIndex: number;
+  rotatingMarket: string[];
+  districtHeat: Record<string, number>;
   players: TestPlayer[];
 };
 
@@ -171,7 +181,7 @@ describe("socket multiplayer integration", () => {
   );
 
   it(
-    "starts game with two players and assigns roles",
+    "starts game with role assignment, contracts, market, and district heat",
     async () => {
       const { host, roomId } = await createJoinedHost();
       const guest = await connectClient();
@@ -180,9 +190,9 @@ describe("socket multiplayer integration", () => {
         await onceEvent(guest, "joined_room");
         host.emit("start_game", roomId);
 
-        const playingRoom = await new Promise<{ status: string; players: Array<{ role: string | null }> }>((resolve, reject) => {
+        const playingRoom = await new Promise<TestRoom>((resolve, reject) => {
           const timer = setTimeout(() => reject(new Error("No playing room_update")), 12_000);
-          const handler = (room: { status: string; players: Array<{ role: string | null }> }) => {
+          const handler = (room: TestRoom) => {
             if (room.status === "playing") {
               clearTimeout(timer);
               host.off("room_update", handler);
@@ -195,6 +205,9 @@ describe("socket multiplayer integration", () => {
         expect(playingRoom.status).toBe("playing");
         expect(playingRoom.players.length).toBeGreaterThanOrEqual(2);
         expect(playingRoom.players.every((p) => p.role !== null)).toBe(true);
+        expect(playingRoom.players.every((p) => p.contracts.length === 2)).toBe(true);
+        expect(playingRoom.rotatingMarket).toHaveLength(3);
+        expect(playingRoom.districtHeat).toEqual({ slums: 0, business: 0, park: 0, residential: 0 });
       } finally {
         guest.disconnect();
         host.disconnect();

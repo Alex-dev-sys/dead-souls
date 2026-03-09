@@ -10,6 +10,41 @@ interface Soul {
   origin: string;
 }
 
+interface Contract {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  goal: number;
+  progress: number;
+  completed: boolean;
+}
+
+interface MatchStats {
+  successfulSteals: number;
+  failedSteals: number;
+  soulsSold: number;
+  totalRevenue: number;
+  turnsWaited: number;
+  contractRewards: number;
+  contractsCompleted: number;
+  highestStreak: number;
+}
+
+interface EndgameEntry {
+  socketId: string;
+  nickname: string;
+  money: number;
+  wantedLevel: number;
+  soulsSold: number;
+  successfulSteals: number;
+  failedSteals: number;
+  contractRewards: number;
+  contractsCompleted: number;
+  highestStreak: number;
+  isEliminated: boolean;
+}
+
 interface Player {
   socketId: string;
   nickname: string;
@@ -21,6 +56,8 @@ interface Player {
   items: string[];
   abilityCooldown: number;
   activeBuffs: string[];
+  contracts: Contract[];
+  matchStats: MatchStats;
   isEliminated: boolean;
   isDisconnected?: boolean;
 }
@@ -31,10 +68,14 @@ interface Room {
   status: "lobby" | "playing" | "ended";
   turn: number;
   activePlayerIndex: number;
+  currentEvent: { text: string; riskMult: number; priceMult: number };
   activeEncounter: { playerId: string; encounterId: string } | null;
   chat: ChatMessage[];
+  districtHeat: Record<string, number>;
+  rotatingMarket: string[];
   turnDeadline: number;
   winner: string | null;
+  endgameSummary: EndgameEntry[] | null;
 }
 
 interface LogEntry {

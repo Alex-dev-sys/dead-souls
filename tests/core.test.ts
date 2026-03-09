@@ -1,10 +1,17 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import {
+  applyContractProgress,
+  bumpDistrictHeat,
   computeStealRisk,
+  createContracts,
+  createDistrictHeatMap,
   createReconnectToken,
+  decayDistrictHeat,
+  getDistrictHeatRiskBonus,
   getNextActivePlayerIndex,
   isAllowedSocketOrigin,
   isStealSuccess,
+  pickRotatingMarket,
   sanitizeChatText,
   shouldRemoveDisconnected,
 } from "../lib/game/core";
@@ -97,6 +104,17 @@ describe("computeStealRisk", () => {
     expect(risk).toBe(30);
   });
 
+  it("applies district heat bonus", () => {
+    const risk = computeStealRisk({
+      districtRisk: 20,
+      eventRiskMultiplier: 1,
+      heatBonus: 9,
+      hasCloak: false,
+      hasShadowWalk: false,
+    });
+    expect(risk).toBe(29);
+  });
+
   it("applies cloak reduction", () => {
     const risk = computeStealRisk({
       districtRisk: 50,
@@ -126,6 +144,50 @@ describe("computeStealRisk", () => {
       hasShadowWalk: true,
     });
     expect(risk).toBe(0);
+  });
+});
+
+describe("district heat helpers", () => {
+  it("creates empty district heat map", () => {
+    expect(createDistrictHeatMap()).toEqual({ slums: 0, business: 0, park: 0, residential: 0 });
+  });
+
+  it("bumps heat with clamp", () => {
+    const heat = bumpDistrictHeat(createDistrictHeatMap(), "business", 14);
+    expect(heat.business).toBe(14);
+  });
+
+  it("decays heat without going below zero", () => {
+    const heated = bumpDistrictHeat(createDistrictHeatMap(), "park", 12);
+    expect(decayDistrictHeat(heated, 20).park).toBe(0);
+  });
+
+  it("converts heat into risk bonus", () => {
+    const heated = bumpDistrictHeat(createDistrictHeatMap(), "residential", 35);
+    expect(getDistrictHeatRiskBonus(heated, "residential")).toBe(9);
+  });
+});
+
+describe("contract helpers", () => {
+  it("creates unique contracts", () => {
+    const contracts = createContracts(2, () => 0.2);
+    expect(contracts).toHaveLength(2);
+    expect(new Set(contracts.map((contract) => contract.id)).size).toBe(2);
+  });
+
+  it("advances contract progress and returns reward on completion", () => {
+    const [contract] = createContracts(1, () => 0);
+    const reward = applyContractProgress([contract], [{ id: contract.id, value: contract.goal }]);
+    expect(reward).toBe(contract.reward);
+    expect(contract.completed).toBe(true);
+  });
+});
+
+describe("market helpers", () => {
+  it("picks unique rotating market items", () => {
+    const picked = pickRotatingMarket(["a", "b", "c", "d"], 3, () => 0.1);
+    expect(picked).toHaveLength(3);
+    expect(new Set(picked).size).toBe(3);
   });
 });
 

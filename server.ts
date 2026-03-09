@@ -1,7 +1,7 @@
 ﻿import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import { computeStealRisk, createReconnectToken, getNextActivePlayerIndex, isAllowedSocketOrigin, isStealSuccess, sanitizeChatText, shouldRemoveDisconnected } from "./lib/game/core";
+import { applyContractProgress, bumpDistrictHeat, computeStealRisk, createContracts, createDistrictHeatMap, decayDistrictHeat, DistrictHeatMap, DistrictId, getDistrictHeatRiskBonus, getNextActivePlayerIndex, isAllowedSocketOrigin, isStealSuccess, pickRotatingMarket, sanitizeChatText, shouldRemoveDisconnected, ContractProgress, createReconnectToken } from "./lib/game/core";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.APP_HOST || "0.0.0.0";
@@ -118,6 +118,16 @@ const ENCOUNTERS = [
 // в”Ђв”Ђв”Ђ SERVER STATE в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 
 interface Soul { id: string; name: string; value: number; origin: string; }
+interface MatchStats {
+    successfulSteals: number;
+    failedSteals: number;
+    soulsSold: number;
+    totalRevenue: number;
+    turnsWaited: number;
+    contractRewards: number;
+    contractsCompleted: number;
+    highestStreak: number;
+}
 interface Player {
     socketId: string;
     nickname: string;
@@ -127,11 +137,27 @@ interface Player {
     inventory: Soul[];
     items: string[];
     abilityCooldown: number;
-    activeBuffs: BuffId[]; // e.g. 'shadow_walk', 'insider'
+    activeBuffs: BuffId[];
     stealStreak: number;
+    contracts: ContractProgress[];
+    visitedDistricts: DistrictId[];
+    matchStats: MatchStats;
     isEliminated: boolean;
     reconnectToken: string;
     disconnectedAt: number | null;
+}
+interface EndgameEntry {
+    socketId: string;
+    nickname: string;
+    money: number;
+    wantedLevel: number;
+    soulsSold: number;
+    successfulSteals: number;
+    failedSteals: number;
+    contractRewards: number;
+    contractsCompleted: number;
+    highestStreak: number;
+    isEliminated: boolean;
 }
 interface Room {
     id: string;
@@ -142,9 +168,12 @@ interface Room {
     currentEvent: { text: string; riskMult: number; priceMult: number };
     activeEncounter: { playerId: string; encounterId: string } | null;
     chat: { nickname: string; text: string; time: number }[];
+    districtHeat: DistrictHeatMap;
+    rotatingMarket: string[];
     turnTimer: ReturnType<typeof setTimeout> | null;
     turnDeadline: number;
     winner: string | null;
+    endgameSummary: EndgameEntry[] | null;
 }
 
 const rooms: Record<string, Room> = {};
@@ -161,6 +190,62 @@ type ActionSellPayload = ActionPayload & { soulIndex: number };
 type ActionBuyPayload = ActionPayload & { itemId: string };
 type ResolveEncounterPayload = ActionPayload & { optionId: string };
 type ActionWaitPayload = ActionPayload;
+
+function createEmptyMatchStats(): MatchStats {
+    return {
+        successfulSteals: 0,
+        failedSteals: 0,
+        soulsSold: 0,
+        totalRevenue: 0,
+        turnsWaited: 0,
+        contractRewards: 0,
+        contractsCompleted: 0,
+        highestStreak: 0,
+    };
+}
+
+function rerollRotatingMarket(room: Room) {
+    room.rotatingMarket = pickRotatingMarket(ITEMS.map((item) => item.id), 3);
+}
+
+function grantContractRewards(io: Server, roomId: string, player: Player, reward: number) {
+    if (reward <= 0) return;
+    player.money += reward;
+    player.matchStats.contractRewards += reward;
+    player.matchStats.contractsCompleted += 1;
+    emitLog(io, roomId, `Contract cleared: ${player.nickname} +${reward}$`, 'success');
+}
+
+function buildEndgameSummary(room: Room): EndgameEntry[] {
+    return [...room.players]
+        .map((player) => ({
+            socketId: player.socketId,
+            nickname: player.nickname,
+            money: player.money,
+            wantedLevel: player.wantedLevel,
+            soulsSold: player.matchStats.soulsSold,
+            successfulSteals: player.matchStats.successfulSteals,
+            failedSteals: player.matchStats.failedSteals,
+            contractRewards: player.matchStats.contractRewards,
+            contractsCompleted: player.matchStats.contractsCompleted,
+            highestStreak: player.matchStats.highestStreak,
+            isEliminated: player.isEliminated,
+        }))
+        .sort((a, b) => b.money - a.money || b.successfulSteals - a.successfulSteals || a.wantedLevel - b.wantedLevel);
+}
+
+function finishGame(io: Server, roomId: string, winner: string | null) {
+    const room = rooms[roomId];
+    if (!room) return;
+    room.status = 'ended';
+    room.winner = winner;
+    room.endgameSummary = buildEndgameSummary(room);
+    if (room.turnTimer) {
+        clearTimeout(room.turnTimer);
+        room.turnTimer = null;
+    }
+    broadcastRoom(io, roomId);
+}
 
 function clearReconnectTimer(token: string) {
     const timer = reconnectTimers[token];
@@ -184,6 +269,8 @@ function toClientRoom(room: Room) {
             abilityCooldown: player.abilityCooldown,
             activeBuffs: player.activeBuffs,
             stealStreak: player.stealStreak,
+            contracts: player.contracts,
+            matchStats: player.matchStats,
             isEliminated: player.isEliminated,
             isDisconnected: player.disconnectedAt !== null,
         })),
@@ -254,9 +341,7 @@ function removePlayerFromRoom(io: Server, roomId: string, socketId: string) {
     if (room.status === "playing") {
         const alive = room.players.filter((p) => !p.isEliminated);
         if (alive.length <= 1) {
-            room.status = "ended";
-            room.winner = alive[0]?.nickname || null;
-            if (room.turnTimer) clearTimeout(room.turnTimer);
+            finishGame(io, roomId, alive[0]?.nickname || null);
         } else if (wasActivePlayer) {
             // Make the next player active without applying removed player's end-turn effects.
             room.activePlayerIndex -= 1;
@@ -317,8 +402,7 @@ function advanceTurn(io: Server, room_id: string) {
     // Game Over check
     const alive = room.players.filter(p => !p.isEliminated);
     if (alive.length === 0) {
-        room.status = 'ended';
-        broadcastRoom(io, room_id);
+        finishGame(io, room_id, null);
         return;
     }
 
@@ -377,8 +461,10 @@ app.prepare().then(() => {
                 id: roomId, players: [], status: 'lobby',
                 turn: 0, activePlayerIndex: 0,
                 currentEvent: EVENTS[0], chat: [], activeEncounter: null,
-                turnTimer: null, turnDeadline: 0, winner: null
+                districtHeat: createDistrictHeatMap(), rotatingMarket: [],
+                turnTimer: null, turnDeadline: 0, winner: null, endgameSummary: null
             };
+            rerollRotatingMarket(rooms[roomId]);
             socket.emit("room_created", roomId);
         });
 
@@ -394,8 +480,9 @@ app.prepare().then(() => {
             room.players.push({
                 socketId: socket.id, nickname, role: null,
                 money: 0, wantedLevel: 0, inventory: [], items: [],
-                abilityCooldown: 0, activeBuffs: [], stealStreak: 0, isEliminated: false,
-                reconnectToken, disconnectedAt: null,
+                abilityCooldown: 0, activeBuffs: [], stealStreak: 0,
+                contracts: [], visitedDistricts: [], matchStats: createEmptyMatchStats(),
+                isEliminated: false, reconnectToken, disconnectedAt: null,
             });
             socket.join(roomId);
             const ack: JoinRoomAck = { roomId, playerId: socket.id, nickname, reconnectToken };
@@ -435,13 +522,16 @@ app.prepare().then(() => {
 
             room.players.forEach((p, i) => {
                 p.role = roles[i % roles.length];
-                p.money = 20; // Starting cash
+                p.money = 20;
                 p.wantedLevel = 0;
                 p.inventory = [];
                 p.items = [];
                 p.abilityCooldown = 0;
                 p.activeBuffs = [];
                 p.stealStreak = 0;
+                p.contracts = createContracts(2);
+                p.visitedDistricts = [];
+                p.matchStats = createEmptyMatchStats();
                 p.isEliminated = false;
                 p.disconnectedAt = null;
             });
@@ -449,7 +539,10 @@ app.prepare().then(() => {
             room.status = 'playing';
             room.turn = 1;
             room.activePlayerIndex = 0;
-            room.currentEvent = EVENTS[0];
+            room.currentEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+            room.districtHeat = createDistrictHeatMap();
+            room.endgameSummary = null;
+            rerollRotatingMarket(room);
 
             emitLog(io, roomId, "💀 ИГРА НАЧАЛАСЬ! Цель: 1500 монет.", 'info');
             broadcastRoom(io, roomId);
@@ -572,15 +665,18 @@ app.prepare().then(() => {
             const cls = CLASSES[player.role!];
             let mult = cls.stats.sellMult * room.currentEvent.priceMult;
 
-            // Items/Buffs
             if (player.items.includes('dagger')) mult += 0.15;
             if (player.activeBuffs.includes('insider')) mult *= 2;
 
             const price = Math.floor(soul.value * mult);
             player.inventory.splice(soulIndex, 1);
             player.money += price;
+            player.matchStats.soulsSold += 1;
+            player.matchStats.totalRevenue += price;
+            const contractReward = applyContractProgress(player.contracts, [{ id: 'broker', amount: 1 }]);
 
-            emitLog(io, roomId, `💰 ${player.nickname} продал душу за ${price} (x${mult.toFixed(1)})`, 'success');
+            emitLog(io, roomId, `Deal closed: ${player.nickname} sold a soul for ${price} (x${mult.toFixed(1)})`, 'success');
+            grantContractRewards(io, roomId, player, contractReward);
 
             if (checkPlayerState(io, roomId, player)) return;
             advanceTurn(io, roomId);
@@ -594,25 +690,24 @@ app.prepare().then(() => {
 
             const item = ITEMS.find(i => i.id === itemId);
             if (!item) return;
-            if (player.money < item.cost) return socket.emit("error_msg", "Не хватает денег");
+            if (!room.rotatingMarket.includes(itemId)) return socket.emit("error_msg", "Lot is not on the market");
+            if (player.money < item.cost) return socket.emit("error_msg", "Not enough cash");
 
             player.money -= item.cost;
 
             if (item.consume) {
-                // Instant effect
                 if (itemId === 'bribe') {
                     player.wantedLevel = Math.max(0, player.wantedLevel - 30);
-                    emitLog(io, roomId, `🤝 ${player.nickname} дал крупную взятку. Розыск -30%.`, 'success');
+                    emitLog(io, roomId, `Bribe paid: ${player.nickname} lowered wanted by 30%`, 'success');
                 }
             } else {
-                // Inventory item
                 player.items.push(itemId);
-                emitLog(io, roomId, `🛒 ${player.nickname} купил предмет: ${item.name}`, 'info');
+                emitLog(io, roomId, `Market buy: ${player.nickname} picked up ${item.name}`, 'info');
             }
 
-            checkPlayerState(io, roomId, player);
-            // Buying doesn't end turn instantly? Let's make it end turn for balance, or make it free action?
-            // Let's make it end turn to prevent spam interaction
+            const contractReward = applyContractProgress(player.contracts, [{ id: 'quartermaster', amount: 1 }]);
+            grantContractRewards(io, roomId, player, contractReward);
+            if (checkPlayerState(io, roomId, player)) return;
             advanceTurn(io, roomId);
         });
 
@@ -627,7 +722,9 @@ app.prepare().then(() => {
             if (passiveIncome > 0) {
                 player.money += passiveIncome;
             }
+            player.matchStats.turnsWaited += 1;
             player.wantedLevel = Math.max(0, player.wantedLevel - 20);
+            room.districtHeat = decayDistrictHeat(room.districtHeat, 4);
             const hadStreak = player.stealStreak > 0;
             player.stealStreak = 0;
             emitLog(
@@ -746,10 +843,13 @@ type DistrictRuntime = (typeof DISTRICTS)[number];
 function resolveSteal(io: Server, roomId: string, player: Player, dist: DistrictRuntime) {
     const room = rooms[roomId];
     const cls = CLASSES[player.role!];
+    const districtId = dist.id as DistrictId;
+    const heatBonus = getDistrictHeatRiskBonus(room.districtHeat, districtId);
 
     const risk = computeStealRisk({
         districtRisk: dist.risk,
         eventRiskMultiplier: room.currentEvent.riskMult,
+        heatBonus,
         hasCloak: player.items.includes("cloak"),
         hasIntelMap: player.items.includes("intel_map"),
         hasShadowWalk: player.activeBuffs.includes("shadow_walk"),
@@ -758,22 +858,33 @@ function resolveSteal(io: Server, roomId: string, player: Player, dist: District
     const roll = Math.random() * 100;
 
     if (isStealSuccess(roll, risk)) {
-        // Success
         const rawVal = Math.floor(Math.random() * (dist.maxReward - dist.minReward)) + dist.minReward;
         const itemBoost = player.items.includes("talisman") ? 1.2 : 1;
         const streakBoost = 1 + Math.min(player.stealStreak * 0.04, 0.2);
         const val = Math.floor(rawVal * itemBoost * streakBoost);
-        const name = `Душа ${SOUL_NAMES[Math.floor(Math.random() * SOUL_NAMES.length)]}`;
+        const name = `Soul ${SOUL_NAMES[Math.floor(Math.random() * SOUL_NAMES.length)]}`;
         player.inventory.push({ id: Date.now().toString(), name, value: val, origin: dist.name });
         player.stealStreak += 1;
-        emitLog(io, roomId, `Completed Heist: ${player.nickname} stole ${name} (${val})${player.stealStreak > 1 ? ` | combo x${player.stealStreak}` : ""}`, 'success');
+        player.matchStats.successfulSteals += 1;
+        player.matchStats.highestStreak = Math.max(player.matchStats.highestStreak, player.stealStreak);
+        if (!player.visitedDistricts.includes(districtId)) {
+            player.visitedDistricts.push(districtId);
+        }
+        room.districtHeat = bumpDistrictHeat(room.districtHeat, districtId, 12);
+        const contractReward = applyContractProgress(player.contracts, [
+            { id: 'runner', amount: 1 },
+            { id: 'district_hopper', value: player.visitedDistricts.length },
+        ]);
+        emitLog(io, roomId, `Heist complete: ${player.nickname} took ${name} (${val}$) in ${dist.name}${heatBonus > 0 ? ` | heat +${heatBonus}%` : ''}${player.stealStreak > 1 ? ` | combo x${player.stealStreak}` : ''}`, 'success');
+        grantContractRewards(io, roomId, player, contractReward);
     } else {
-        // Fail
         let pen = 15;
         if (cls.stats.failReduction) pen *= cls.stats.failReduction;
         player.stealStreak = 0;
+        player.matchStats.failedSteals += 1;
         player.wantedLevel += Math.floor(pen);
-        emitLog(io, roomId, `Failed Heist: ${player.nickname} noticed! +${Math.floor(pen)}% Wanted`, 'danger');
+        room.districtHeat = bumpDistrictHeat(room.districtHeat, districtId, 18);
+        emitLog(io, roomId, `Heist failed: ${player.nickname} got spotted in ${dist.name}. +${Math.floor(pen)}% wanted${heatBonus > 0 ? ` | heat +${heatBonus}%` : ''}`, 'danger');
     }
 
     if (checkPlayerState(io, roomId, player)) return;
